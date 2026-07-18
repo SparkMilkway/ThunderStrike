@@ -28,14 +28,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
 
         // In the Widget host, colors come from Kimi runtime tokens.
         // Inside the standalone app we inject a matching dark theme instead.
+        // 净化规则：隐藏画布外一切文字/按钮 UI，只留 .stage 画布居中显示。
+        // 注意：画面尺寸预设由游戏 JS 改 .stage 的 max-inline/max-block-size
+        // 并 postMessage resize 窗口，注入 CSS 绝不触碰 canvas/.stage 的尺寸属性，
+        // 这样切换预设时窗口跟随 resize，外层 UI 已隐藏，不会再有重叠。
         let appCss = """
         body { background: #0b1120 !important; color: #e8eefc !important;
                font-family: -apple-system, "PingFang SC", sans-serif !important; }
         h1 .sub, .help, p.status { color: #93a3c8 !important; }
         p.status output { color: #e8eefc !important; }
-        .stage { border-color: #2a3554 !important; }
         .controls button { background: #1a2140 !important; border-color: #39466e !important; color: #e8eefc !important; }
         .controls button.primary { background: #3a7bff !important; color: #ffffff !important; border-color: transparent !important; }
+
+        /* —— 纯游戏窗口：隐藏非 .stage 元素，画布铺满/居中 —— */
+        html, body { margin: 0 !important; padding: 0 !important;
+                     height: 100% !important; overflow: hidden !important; }
+        body { background: #04060f !important; display: flex !important; }
+        header.kimi-host-safe-header, .controls, .help { display: none !important; }
+        main[data-kimi-root] { margin: auto !important; inline-size: 100% !important; }
+        .stage { border: none !important; border-radius: 0 !important;
+                 box-shadow: none !important; }
         """
         let cssJs = """
         (function() {

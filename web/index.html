@@ -478,7 +478,8 @@ function musXfadeTo(key) {
   musicGain.gain.setTargetAtTime(0.02, AC.currentTime, 0.45);
   setTimeout(function () {
     musTrack = key;
-    if (musicGain) musicGain.gain.setTargetAtTime(musVolG(), AC.currentTime, 0.5);
+    /* 修复：淡入恢复时尊重音乐开关——若用户在淡出期间关了音乐，不再被强制淡回 */
+    if (musicGain) musicGain.gain.setTargetAtTime(musOn ? musVolG() : 0, AC.currentTime, 0.5);
   }, 1000);
 }
 
@@ -786,7 +787,7 @@ window.addEventListener('keydown', function (e) {
     if (k === 'ArrowUp') menuIdx = (menuIdx + MENU_N - 1) % MENU_N;
     else if (k === 'ArrowDown') menuIdx = (menuIdx + 1) % MENU_N;
     else if ((k === 'ArrowLeft' || k === 'ArrowRight') && menuIdx === 3) { diffIdx = (diffIdx + (k === 'ArrowLeft' ? DIFFS.length - 1 : 1)) % DIFFS.length; }
-    else if (k === 'Enter') menuActivate();
+    else if (k === 'Enter') { if (!e.repeat) menuActivate(); } /* 屏蔽连发：防止上一界面长按回车连锁开局 */
     else if (k === '1') { ensureAudio(); startGame(1); }
     else if (k === '2') { ensureAudio(); startGame(2); }
     return;
@@ -801,7 +802,7 @@ window.addEventListener('keydown', function (e) {
       startWeapon = wl[wi2];
       sfxItem();
     }
-    else if (k === 'Enter') { ensureAudio(); startGame(1, stageSel); }
+    else if (k === 'Enter') { if (!e.repeat) { ensureAudio(); startGame(1, stageSel); } }
     else if (k === 'Escape') setMode('title');
     return;
   }
@@ -818,7 +819,9 @@ window.addEventListener('keydown', function (e) {
     return;
   }
   if (mode === 'nameentry') {
-    /* 街机留名：↑↓/WS 循环 A-Z，←→/AD 移动光标，Enter 逐位确认 */
+    /* 街机留名：↑↓/WS 循环 A-Z，←→/AD 移动光标，Enter 逐位确认；
+       Enter/Escape 屏蔽长按连发，避免按住回车瞬间跳过留名并连锁触发下一界面的确认键 */
+    if (e.repeat && (k === 'Enter' || k === 'Escape')) return;
     if (k === 'ArrowUp' || k === 'w' || k === 'W') { neLetters[nePos] = (neLetters[nePos] + 1) % 26; sfxItem(); }
     else if (k === 'ArrowDown' || k === 's' || k === 'S') { neLetters[nePos] = (neLetters[nePos] + 25) % 26; sfxItem(); }
     else if (k === 'ArrowLeft' || k === 'a' || k === 'A') nePos = Math.max(0, nePos - 1);
@@ -832,11 +835,13 @@ window.addEventListener('keydown', function (e) {
     return;
   }
   if (mode === 'victory') {
+    if (e.repeat) return; /* 屏蔽连发：防止按住 Enter/C 连锁触发下一界面操作 */
     if (k === 'Enter') { setMode('title'); stage = 1; stageWave = 1; endlessLoop = 0; }
     if (k === 'c' || k === 'C') { victoryEndless(); }
     return;
   }
   if (mode === 'gameover') {
+    if (e.repeat) return; /* 同上：留名确认后按住回车不会立刻重开 */
     if (k === 'Enter') { ensureAudio(); startGame(numPlayers); }
     if (k === 'c' || k === 'C') { ensureAudio(); continueGame(); }
     return;
@@ -1072,31 +1077,30 @@ function aimed(x, y, sp) {
   var a = Math.atan2(t.y - y, t.x - x);
   eShoot(x, y, a, sp);
 }
-var RED_PATTERNS = [
+/* 火神炮：所有子弹严格垂直向上（vx=0），升级增加平行弹道数（横向偏移 px） */
+var RED_OFFSETS = [
   [0],
-  [-0.05, 0.05],
-  [0, -0.1, 0.1],
-  [-0.05, 0.05, -0.15, 0.15],
-  [0, -0.07, 0.07, -0.16, 0.16]
+  [-5, 5],
+  [0, -9, 9],
+  [-4, 4, -12, 12],
+  [0, -7, 7, -14, 14]
 ];
 function fireRed(p) {
-  var pat = RED_PATTERNS[p.lvl - 1];
+  var pat = RED_OFFSETS[p.lvl - 1];
   var dmg = 1 * dmgMul();
   for (var i = 0; i < pat.length; i++) {
-    var a = pat[i];
-    bullets.push({ x: p.x + Math.sin(a) * 8, y: p.y - 14, vx: Math.sin(a) * 560, vy: -Math.cos(a) * 560, r: 3, dmg: dmg });
+    bullets.push({ x: p.x + pat[i], y: p.y - 14, vx: 0, vy: -560, r: 3, dmg: dmg });
   }
   sfxShoot();
 }
-/* 合体技：超级火神炮 —— 合体点向前喷 7 路弹幕 */
+/* 合体技：超级火神炮 —— 合体点向前平行喷出 7 路垂直弹幕（同样全垂直 vx=0） */
 function fireSuperVulcan() {
   var mx = (players[0].x + players[1].x) / 2;
   var my = (players[0].y + players[1].y) / 2 - 10;
   var lvl = Math.max(players[0].lvl, players[1].lvl);
   var dmg = 1 + 0.25 * (lvl - 1);
   for (var i = 0; i < 7; i++) {
-    var a = (i - 3) * 0.1;
-    bullets.push({ x: mx + Math.sin(a) * 10, y: my, vx: Math.sin(a) * 610, vy: -Math.cos(a) * 610, r: 3.4, dmg: dmg });
+    bullets.push({ x: mx + (i - 3) * 9, y: my, vx: 0, vy: -610, r: 3.4, dmg: dmg });
   }
   if (Math.random() < 0.5) spark(mx, my - 6);
   sfxShoot();
@@ -1120,8 +1124,8 @@ function fireHoming(p) {
 var SPR_COUNT = [5, 5, 7, 7, 9];
 function fireSpr(p) {
   var n = SPR_COUNT[p.lvl - 1];
-  var dmg = 0.55 * dmgMul();
-  var spread = 0.62; /* 扇形总张角（弧度） */
+  var dmg = 0.5 * dmgMul(); /* 张角加宽后单颗伤害微降，平衡覆盖率提升 */
+  var spread = 0.9; /* 扇形总张角（弧度） */
   for (var i = 0; i < n; i++) {
     var a = (i / (n - 1) - 0.5) * spread + rand(-0.04, 0.04); /* 轻微扩散随机性 */
     var sp = 470 + rand(-30, 30);
@@ -1191,70 +1195,121 @@ function updateMissiles(dt) {
   }
 }
 
-/* --- plasma whip laser (Raiden 2 style, per-player) --- */
+/* --- 电浆鞭（Raiden 风格，每玩家一条）：Verlet 绳物理 ---
+   节点存 x,y,px,py；鞭根（0 号）每帧钉在机头，其余节点 verlet 积分（带阻尼）
+   + 3 轮距离约束迭代（相邻节点固定节距 segLen）。玩家移动时机头拖拽绳体，
+   产生自然的滞后 / 甩尾弧线——这是"鞭子感"的来源。
+   导向加速度按 (节点序号/绳长)^3 向鞭梢集中（鞭根几乎不受力），
+   绳体逐渐弯成弧线扑向目标而非瞬间拉直；锁定本身不产生任何伤害，
+   伤害只发生在鞭梢 / 鞭身与敌人实际接触时。 */
 var WHIP_N = 16;
+function whipLen(p) { return 210 + 26 * p.lvl; } /* 绳总长 L */
 function whipResetAll() {
   for (var i = 0; i < players.length; i++) { players[i].whip.nodes = null; players[i].whip.locked = null; }
 }
+/* 索敌：只锁定鞭子物理可达的敌人——与玩家距离 ≤ L+40 且横向 |dx| ≤ 150 */
 function acquireLock(p) {
+  var L = whipLen(p);
   var best = null, bd = 1e12;
   for (var i = 0; i < enemies.length; i++) {
     var e = enemies[i];
-    /* 修复：锁定 y 窗口原为 e.y > p.y-10 即排除，导致玩家飞到悬停敌机上方时
-       鞭子永远无法锁定（甩鞭可向下弯曲，无需限制敌机必须在机头上方） */
-    if (e.dead || e.y > H + 20 || e.y < -20) continue;
-    if (Math.abs(e.x - p.x) > 170) continue;
-    var d2 = (e.x - p.x) * (e.x - p.x) + (e.y - p.y) * (e.y - p.y);
+    if (e.dead || e.gone || e.y > H + 20 || e.y < -20) continue;
+    var dx = e.x - p.x, dy = e.y - p.y;
+    if (Math.abs(dx) > 150) continue;
+    var d2 = dx * dx + dy * dy;
+    if (d2 > (L + 40) * (L + 40)) continue;
     if (d2 < bd) { bd = d2; best = e; }
   }
   return best;
 }
 function updateWhip(p, dt) {
   var wp = p.whip;
+  var L = whipLen(p);
+  var segLen = L / (WHIP_N - 1);
+  var ax = p.x, ay = p.y - 16; /* 机头锚点 */
+  var i;
   if (!wp.nodes) {
+    /* 初始绳：自机头竖直向上展开，当前/上一帧位置一致（静止起步） */
     wp.nodes = [];
-    for (var i = 0; i < WHIP_N; i++) wp.nodes.push({ x: p.x, y: p.y - 16 - (p.y - 16) * i / (WHIP_N - 1), vx: 0, vy: 0 });
+    for (i = 0; i < WHIP_N; i++) {
+      var iy = ay - segLen * i;
+      wp.nodes.push({ x: ax, y: iy, px: ax, py: iy });
+    }
   }
-  /* 修复：锁定解除条件原为 locked.y > p.y+24，与上面的锁定窗口一样会把
-     玩家下方的悬停敌机立即解锁；改为仅飞出屏幕底部才解除 */
-  if (wp.locked && (wp.locked.dead || wp.locked.gone || wp.locked.y > H + 30)) wp.locked = null;
+  /* 锁定磁滞：已锁目标除非死亡 / 出屏 / 超出 L+70 才脱锁，避免边界抖动切换 */
+  if (wp.locked) {
+    var lk = wp.locked;
+    var ldx = lk.x - p.x, ldy = lk.y - p.y;
+    if (lk.dead || lk.gone || lk.y > H + 30 || ldx * ldx + ldy * ldy > (L + 70) * (L + 70)) wp.locked = null;
+  }
   if (!wp.locked) wp.locked = acquireLock(p);
-  var ax = p.x, ay = p.y - 16;
-  var tx = wp.locked ? wp.locked.x : p.x;
-  var ty = wp.locked ? wp.locked.y : -30;
-  var stiffBase = 38 + p.lvl * 6;
-  for (i = 0; i < WHIP_N; i++) {
+
+  /* 1) verlet 积分：惯性 + 阻尼 + 轻微下坠（给绳一点重量感，闲置时自然摆动） */
+  var damp = Math.max(0, 1 - 2.4 * dt);
+  var dt2 = dt * dt;
+  for (i = 1; i < WHIP_N; i++) {
     var n = wp.nodes[i];
-    /* 修复：鞭根（第 1 个节点）每帧硬钉在机头锚点并清零速度，
-       防止玩家高速移动时弹簧滞后导致鞭根脱离机头；其余节点保持甩鞭惯性 */
-    if (i === 0) { n.x = ax; n.y = ay; n.vx = 0; n.vy = 0; continue; }
-    var f = i / (WHIP_N - 1);
-    var rx = ax + (tx - ax) * f, ry = ay + (ty - ay) * f;
-    var stiff = i === WHIP_N - 1 ? stiffBase * 2.4 : stiffBase;
-    n.vx += (rx - n.x) * stiff * dt;
-    n.vy += (ry - n.y) * stiff * dt;
-    var damp = Math.max(0, 1 - 5.2 * dt);
-    n.vx *= damp; n.vy *= damp;
-    n.x += n.vx * dt;
-    n.y += n.vy * dt;
+    var vx = (n.x - n.px) * damp;
+    var vy = (n.y - n.py) * damp;
+    n.px = n.x; n.py = n.y;
+    n.x += vx;
+    n.y += vy + 20 * dt2;
   }
-  var dps = (34 + 32 * p.lvl) * dmgMul();
-  if (wp.locked && !wp.locked.dead) {
-    damageEnemy(wp.locked, dps * dt, p.x, p.y);
-    if (Math.random() < dt * 22) spark(wp.locked.x + rand(-6, 6), wp.locked.y + rand(-6, 6));
+  /* 2) 导向：转向加速度按 (节点序号/绳长)^3 向鞭梢集中——鞭根几乎不受力、
+     保持自由甩动，鞭梢被明显牵引向锁定目标，绳体逐渐弯成弧线而不是被瞬间
+     拉直（实测：纯鞭梢单点导向在距离约束下弯折无法沿绳上传，鞭梢会停在
+     目标外 ~37px 的平衡点；立方衰减是保持"鞭梢导向"手感的最小扩散）。
+     无锁定时鞭梢轻微上探，随玩家移动自然摆动 */
+  var tip = wp.nodes[WHIP_N - 1];
+  var gx, gy, steer;
+  if (wp.locked && !wp.locked.dead) { gx = wp.locked.x; gy = wp.locked.y; steer = 2400; }
+  else { gx = p.x; gy = ay - L * 0.8; steer = 670; }
+  for (i = 1; i < WHIP_N; i++) {
+    var wf = Math.pow(i / (WHIP_N - 1), 3);
+    if (wf < 0.02) continue;
+    var wn = wp.nodes[i];
+    var sdx = gx - wn.x, sdy = gy - wn.y;
+    var sd = Math.sqrt(sdx * sdx + sdy * sdy);
+    if (sd > 1) {
+      var acc = Math.min(steer * wf, sd * 6); /* 接近目标时收力，防止绕目标振荡 */
+      wn.x += sdx / sd * acc * dt2;
+      wn.y += sdy / sd * acc * dt2;
+    }
   }
-  var touchW = 4 + p.lvl * 2 + 8;
+  /* 3) 距离约束迭代（3 轮）：相邻节点保持 segLen 节距；鞭根每轮重新钉回机头，
+     且父节视为已定位、修正量全给子节——从鞭根向鞭梢单轮即可把绳长收敛，
+     玩家高速移动时绳体被拖拽出甩尾弧线但不会被拉长/压缩 */
+  var n0 = wp.nodes[0];
+  for (var iter = 0; iter < 3; iter++) {
+    n0.x = ax; n0.y = ay;
+    for (i = 0; i < WHIP_N - 1; i++) {
+      var na = wp.nodes[i], nb = wp.nodes[i + 1];
+      var ddx = nb.x - na.x, ddy = nb.y - na.y;
+      var dd = Math.sqrt(ddx * ddx + ddy * ddy) || 1e-6;
+      var corr = (dd - segLen) / dd;
+      nb.x -= ddx * corr; nb.y -= ddy * corr;
+    }
+  }
+  n0.x = ax; n0.y = ay; n0.px = ax; n0.py = ay; /* 钉死鞭根并清零其速度，杜绝漂移 */
+
+  /* 4) 纯接触伤害：锁定只负责引导鞭梢，不再隔空掉血。
+     鞭梢接触全 dps，鞭身擦碰 0.35 倍；伤害源取实际接触节点位置，
+     鞭身绕到护盾兵侧后方时可正确打出双倍伤害 */
+  var dps = (26 + 24 * p.lvl) * dmgMul();
   for (var j = 0; j < enemies.length; j++) {
     var e = enemies[j];
-    /* 修复：擦碰判定原为 e.y > p.y 即跳过，玩家下方的敌机永远不被鞭身擦到 */
-    if (e.dead || e === wp.locked || e.y > H + 20) continue;
-    for (i = 1; i < WHIP_N; i += 2) {
+    if (e.dead || e.y > H + 20 || e.y < -40) continue;
+    var tdx = e.x - tip.x, tdy = e.y - tip.y, trr = e.r + 6 + p.lvl;
+    if (tdx * tdx + tdy * tdy < trr * trr) {
+      damageEnemy(e, dps * dt, tip.x, tip.y);
+      if (Math.random() < dt * 26) spark(tip.x + rand(-4, 4), tip.y + rand(-4, 4));
+      continue; /* 同一敌人同帧只吃一段伤害 */
+    }
+    for (i = 1; i < WHIP_N - 1; i++) {
       var nn = wp.nodes[i];
-      var dx = e.x - nn.x, dy = e.y - nn.y, rr = e.r + touchW;
-      if (dx * dx + dy * dy < rr * rr) {
-        /* 修复：伤害源改为实际擦碰的鞭身节点位置（原为玩家位置），
-           鞭身绕到护盾兵侧后方时可正确打出双倍伤害，不再被正面护盾误拦 */
-        damageEnemy(e, dps * 0.4 * dt, nn.x, nn.y);
+      var bdx = e.x - nn.x, bdy = e.y - nn.y, brr = e.r + 4 + p.lvl;
+      if (bdx * bdx + bdy * bdy < brr * brr) {
+        damageEnemy(e, dps * 0.35 * dt, nn.x, nn.y);
         if (Math.random() < dt * 10) spark(nn.x, nn.y);
         break;
       }
@@ -1294,6 +1349,17 @@ function drawWhip(p) {
   ctx.lineWidth = wCore;
   pathThrough(0);
   ctx.stroke();
+  /* 鞭梢能量亮点：随速度增亮，强调实际接触点 */
+  var tipN = wp.nodes[WHIP_N - 1];
+  var tipSpd = Math.sqrt((tipN.x - tipN.px) * (tipN.x - tipN.px) + (tipN.y - tipN.py) * (tipN.y - tipN.py)) * 60;
+  var tipR = 6 + p.lvl + Math.min(5, tipSpd * 0.006);
+  var tg = ctx.createRadialGradient(tipN.x, tipN.y, 0.5, tipN.x, tipN.y, tipR);
+  tg.addColorStop(0, 'rgba(255,255,255,0.95)');
+  tg.addColorStop(0.4, 'rgba(' + tint + ',0.75)');
+  tg.addColorStop(1, 'rgba(' + tint + ',0)');
+  ctx.fillStyle = tg;
+  ctx.beginPath(); ctx.arc(tipN.x, tipN.y, tipR, 0, TAU); ctx.fill();
+  if (tipSpd > 320 && Math.random() < 0.35) spark(tipN.x, tipN.y); /* 高速甩动时鞭梢溅火花 */
   if (wp.locked && !wp.locked.dead) {
     ctx.strokeStyle = 'rgba(' + tint + ',0.85)';
     ctx.lineWidth = 1.6;
@@ -1333,9 +1399,18 @@ function whipHumUpdate() {
       whipHum[i] = null;
     }
   }
-  /* 轻微音高抖动，模拟电弧质感 */
+  /* 轻微音高抖动模拟电弧质感；鞭梢高速运动时音调微升（甩鞭脆响感） */
   for (i = 0; i < 2; i++) {
-    if (whipHum[i]) whipHum[i].o.frequency.value = 78 + i * 9 + Math.sin(gameT * 21 + i * 2.3) * 5;
+    if (whipHum[i]) {
+      var hp2 = players[i];
+      var lift = 0;
+      if (hp2 && hp2.whip.nodes) {
+        var ht = hp2.whip.nodes[WHIP_N - 1];
+        var hdx = ht.x - ht.px, hdy = ht.y - ht.py;
+        lift = Math.min(52, Math.sqrt(hdx * hdx + hdy * hdy) * 11);
+      }
+      whipHum[i].o.frequency.value = 78 + i * 9 + Math.sin(gameT * 21 + i * 2.3) * 5 + lift;
+    }
   }
 }
 
@@ -1524,13 +1599,15 @@ function playerHit(p) {
     if (!anyAlive) {
       setMode('gameover');
       gameoverT = 0;
-      try { localStorage.setItem('thunder-strike-hi', String(hi)); } catch (e) {}
+      /* god 调试模式不写持久最高分，避免污染正常纪录 */
+      if (!godMode) { try { localStorage.setItem('thunder-strike-hi', String(hi)); } catch (e) {} }
       maybeNameEntry('gameover'); /* 上榜则先进入街机留名界面 */
     }
   } else {
     p.inv = 3;
     p.x = respawnX(p.id);
     p.y = H - 84;
+    p.whip.nodes = null; p.whip.locked = null; /* 复活后鞭绳在新位置重建，避免旧绳被瞬拉 */
   }
 }
 /* 续命：全员满 3 命原地复活 + 无敌 3 秒，分数保留 */
@@ -1894,7 +1971,7 @@ function updatePlaying(dt) {
         victoryPending = false;
         setMode('victory');
         victoryT = 0; fwT = 0;
-        try { localStorage.setItem('thunder-strike-hi', String(hi)); } catch (err) {}
+        if (!godMode) { try { localStorage.setItem('thunder-strike-hi', String(hi)); } catch (err) {} }
         maybeNameEntry('victory'); /* 上榜则先进入街机留名界面 */
         sfxFanfare();
       } else {
@@ -1934,7 +2011,7 @@ function updatePlaying(dt) {
       if (bothWeapon('red')) {
         /* 超级火神炮由 1P 统一从合体点发射 */
         if (p.id === 0 && p.fireT <= 0) { fireSuperVulcan(); p.fireT = 0.11; }
-      } else if (p.fireT <= 0) { fireRed(p); p.fireT = 0.13 * rateMul(); }
+      } else if (p.fireT <= 0) { fireRed(p); p.fireT = 0.12 * rateMul(); } /* 平行弹道全覆盖后射速微升，总 DPS 较原版约 +8% */
     } else if (p.weapon === 'blue') {
       updateWhip(p, dt);
     } else if (p.weapon === 'spr') {
@@ -2155,6 +2232,7 @@ function updatePlaying(dt) {
 
 function updateFx(dt) {
   if (parts.length > 900) parts.splice(0, parts.length - 900); /* 粒子数兜底 */
+  if (floats.length > 48) floats.splice(0, floats.length - 48); /* 浮字数兜底（防密集击坠时刷屏泄漏） */
   for (var i = parts.length - 1; i >= 0; i--) {
     var p = parts[i];
     p.life -= dt;
@@ -3441,9 +3519,9 @@ function drawIntermission() {
 function qualifiesScore() {
   return score > 0 && (scores.length < 10 || score > scores[scores.length - 1].s);
 }
-/* Game Over / 通关时若上榜则先进入街机留名界面 */
+/* Game Over / 通关时若上榜则先进入街机留名界面；god 调试模式成绩不入榜 */
 function maybeNameEntry(after) {
-  if (!qualifiesScore()) return;
+  if (godMode || !qualifiesScore()) return;
   neLetters = [0, 0, 0]; nePos = 0; neAfter = after;
   setMode('nameentry');
 }
@@ -3550,7 +3628,8 @@ var godMode = false;
   if (!q) return;
   var m, dbgStage = 0, dbgWave = 0;
   m = q.match(/[?&]stage=([1-4])/);
-  if (m) { dbgStage = parseInt(m[1], 10); unlockStage(dbgStage); }
+  /* 调试解锁仅本次会话生效，不写入 ts_unlock，避免污染正常通关进度 */
+  if (m) { dbgStage = parseInt(m[1], 10); unlocked = Math.max(unlocked, dbgStage); }
   m = q.match(/[?&]wave=([1-8])/);
   if (m) dbgWave = parseInt(m[1], 10);
   if (/[?&]god=1/.test(q)) godMode = true;
