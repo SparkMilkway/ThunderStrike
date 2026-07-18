@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>雷霆战机 · GIF 录制器</title>
+<style>
+  body { margin: 0; background: #0b0e1a; color: #9fe; font: 13px/1.5 monospace;
+         display: flex; flex-direction: column; align-items: center; padding: 12px; }
+  #status { max-width: 480px; width: 100%; padding: 8px 10px; margin-bottom: 10px;
+            background: #141a2e; border: 1px solid #2a3a5e; border-radius: 6px;
+            white-space: pre-wrap; word-break: break-all; }
+  iframe { width: 480px; height: 640px; border: 1px solid #2a3a5e; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div id="status">初始化…</div>
+<iframe id="game" src="../web/index.html"></iframe>
+<script>
+'use strict';
+/* 若有 gameq 参数，透传到游戏 iframe src（如 stage=2&god=1&mute=1 调试钩子） */
+(function () {
+  var gq = new URLSearchParams(location.search).get('gameq');
+  if (gq) document.getElementById('game').src = '../web/index.html?' + gq;
+})();
+/* ============================================================
+ * 雷霆战机 gameplay GIF 录制 harness
+ *
+ * 原理：
+ *  1. iframe 同源加载 ../web/index.html（必须由 record_gif.py 的
+ *     本地服务器托管，保证同源 + 能 POST 回服务器）。
+ *  2. 按时间线脚本向 iframe.contentWindow dispatch KeyboardEvent
+ *     （游戏键位见源码 keydown handler，约 530 行）：
+ *       - 标题界面：'1' 单人开始 / '2' 双人开始 / Enter 激活菜单
+ *       - 移动：WASD 或方向键（单人两套都有效）
+ *       - 射击：自动开火，无需按键
+ *       - 炸弹：'x' / 'b' / 空格 / 'q'（1P）
+ *       - 暂停：'p' / Escape
+ *  3. 每 1000/fps ms 抓 canvas.toDataURL('image/png') POST /frame?i=N
+ *  4. 到达 duration 后 POST /finish，服务器用 ffmpeg 合成 GIF
+ *
+ * URL 参数（全部可选）：
+ *   duration  录制总时长（秒），默认 12
+ *   fps       抓帧率，默认 10（须与 record_gif.py --fps 一致）
+ *   script    时间线脚本名（见下方 SCRIPTS），默认 gameplay
+ *   name      本次录制名（传给服务器做标识），默认 gameplay
+ * ============================================================ */
+
+/* ---------- 可配置常量（URL 参数优先） ---------- */
+var Q = new URLSearchParams(location.search);
+var CFG = {
+  duration: parseFloat(Q.get('duration') || '12'),
+  fps: parseInt(Q.get('fps') || '10', 10),
+  script: Q.get('script') || 'gameplay',
+  name: Q.get('name') || 'gameplay',
+  gameq: Q.get('gameq') || ''   /* 透传给游戏 iframe 的 query，如 'stage=2&god=1&mute=1' */
+};
+
+/* ---------- 游戏内部常量（与 web/index.html 一致） ---------- */
+var GW = 480, GH = 640;
+
+/* ---------- 键盘事件注入 ---------- */
+var frameEl = document.getElementById('game');
+var statusEl = document.getElementById('status');
+var held = {};          /* 当前按住的键，避免重复 dispatch */
+var timers = [];        /* 时间线定时器，便于清理 */
+
+function gwin() { return frameEl.contentWindow; }
+
+function dispatchKey(type, key) {
+  var w = gwin();
+  if (!w) return;
+  /* 用 iframe 自己的 KeyboardEvent 构造器，避免跨 realm 问题 */
+  w.dispatchEvent(new w.KeyboardEvent(type, { key: key, bubbles: true, cancelable: true }));
+}
+function down(key) { if (!held[key]) { held[key] = true; dispatchKey('keydown', key); } }
+function up(key)   { if (held[key])  { held[key] = false; dispatchKey('keyup', key); } }
+function press(key, ms) {
+  down(key);
+  timers.push(setTimeout(function () { up(key); }, ms || 90));
+}
+function releaseAll() { for (var k in held) up(k); }
+
+/* ---------- 自动驾驶：读取玩家坐标，朝正弦目标轨迹打方向键 ---------- */
+var autoTimer = null, autoT0 = 0;
+function autoTarget(t) {
+  /* t：进入自动驾驶后的秒数；正弦巡逻轨迹，位于画面中下部 */
+  return {
+    x: GW / 2 + 150 * Math.sin(t * 0.8),
+    y: GH - 190 + 90 * Math.sin(t * 1.3 + 1.5)
+  };
+}
+function autoOn() {
+  if (autoTimer) return;
+  autoT0 = performance.now();
+  autoTimer = setInterval(function () {
+    var w = gwin();
+    if (!w || w.mode !== 'playing' || !w.players || !w.players.length) { releaseAll(); return; }
+    var p = w.players[0];
+    if (!p.alive) { releaseAll(); return; }
+    var t = (performance.now() - autoT0) / 1000;
+    var tgt = autoTarget(t);
+    var dx = tgt.x - p.x, dy = tgt.y - p.y, HY = 8; /* 滞回，防抖 */
+    if (dx < -HY) { down('ArrowLeft'); up('ArrowRight'); }
+    else if (dx > HY) { down('ArrowRight'); up('ArrowLeft'); }
+    else { up('ArrowLeft'); up('ArrowRight'); }
+    if (dy < -HY) { down('ArrowUp'); up('ArrowDown'); }
+    else if (dy > HY) { down('ArrowDown'); up('ArrowUp'); }
+    else { up('ArrowUp'); up('ArrowDown'); }
+  }, 100);
+}
+function autoOff() { if (autoTimer) { clearInterval(autoTimer); autoTimer = null; } releaseAll(); }
+
+/* ---------- 时间线 API ---------- */
+function at(t, fn) { timers.push(setTimeout(fn, t * 1000)); }
+
+/* ---------- 时间线脚本库（可在此新增，URL ?script=名字 选用） ---------- */
+var SCRIPTS = {
+  /* 主脚本：菜单展示 → 单人开局 → 正弦自动驾驶 → 中途炸弹 → 收尾 */
+  gameplay: function () {
+    var bombAt = Math.min(Math.max(CFG.duration * 0.55, 3), CFG.duration - 2);
+    at(1.5, function () { press('1'); });            /* 0~1.5s 展示标题菜单，然后按 1 开始单人 */
+    at(2.0, autoOn);                                  /* 2s 起自动驾驶（射击为自动开火） */
+    at(bombAt, function () { press('x'); });          /* 中途放一次炸弹 */
+    at(Math.max(CFG.duration - 0.5, 1), autoOff);     /* 收尾松键 */
+  },
+  /* 只展示标题界面并上下切换菜单项（适合录菜单 GIF） */
+  menu: function () {
+    at(1.0, function () { press('ArrowDown'); });
+    at(2.0, function () { press('ArrowDown'); });
+    at(3.0, function () { press('ArrowUp'); });
+    at(4.0, function () { press('ArrowUp'); });
+  },
+  /* 双人模式：'2' 开局，1P 用 WASD 小幅移动，2P 不动 */
+  twoplayer: function () {
+    var bombAt = Math.min(Math.max(CFG.duration * 0.5, 3), CFG.duration - 2);
+    at(1.5, function () { press('2'); });
+    at(2.0, autoOn);                                  /* autoOn 只操纵方向键=2P；1P 静止 */
+    at(bombAt, function () { press('x'); });          /* 1P 炸弹 */
+    at(Math.max(CFG.duration - 0.5, 1), autoOff);
+  }
+};
+
+/* ---------- 抓帧与上传 ---------- */
+var frameIdx = 0, capTimer = null, t0 = 0, postFails = 0, finished = false;
+
+function setStatus(msg) {
+  statusEl.textContent = msg;
+}
+
+function captureFrame() {
+  var w = gwin();
+  if (!w) return;
+  var cv = w.document.querySelector('canvas');
+  if (!cv) { setStatus('错误：iframe 内找不到 canvas'); return; }
+  var dataUrl;
+  try { dataUrl = cv.toDataURL('image/png'); }
+  catch (e) { setStatus('错误：toDataURL 失败 ' + e); return; }
+  var i = frameIdx++;
+  fetch('/frame?i=' + i + '&name=' + encodeURIComponent(CFG.name), {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: dataUrl
+  }).catch(function () { postFails++; });
+}
+
+function finish() {
+  if (finished) return;
+  finished = true;
+  clearInterval(capTimer);
+  autoOff();
+  timers.forEach(clearTimeout);
+  fetch('/finish?name=' + encodeURIComponent(CFG.name) +
+        '&fps=' + CFG.fps + '&frames=' + frameIdx, { method: 'POST', body: '{}' })
+    .then(function () {
+      setStatus('录制结束：共 ' + frameIdx + ' 帧（POST 失败 ' + postFails + ' 次）。\n' +
+                '已通知服务器合成 GIF，可以关闭本页。');
+    })
+    .catch(function (e) {
+      setStatus('录制结束：共 ' + frameIdx + ' 帧，但 /finish 通知失败：' + e);
+    });
+}
+
+/* ---------- 启动 ---------- */
+frameEl.addEventListener('load', function () {
+  setTimeout(function () {
+    var script = SCRIPTS[CFG.script];
+    if (!script) { setStatus('错误：未知时间线脚本 "' + CFG.script + '"，可用：' + Object.keys(SCRIPTS).join(', ')); return; }
+    fetch('/begin?name=' + encodeURIComponent(CFG.name), { method: 'POST', body: '{}' })
+      .catch(function () {}) /* /begin 失败不阻塞，服务器会兜底 */
+      .then(function () {
+        t0 = performance.now();
+        setStatus('录制中… script=' + CFG.script + ' duration=' + CFG.duration +
+                  's fps=' + CFG.fps + '\n目标帧数 ≈ ' + Math.round(CFG.duration * CFG.fps));
+        script();
+        capTimer = setInterval(function () {
+          captureFrame();
+          var el = (performance.now() - t0) / 1000;
+          if (!finished) setStatus('录制中… ' + el.toFixed(1) + 's / ' + CFG.duration +
+                                   's，已抓 ' + frameIdx + ' 帧');
+          if (el >= CFG.duration) finish();
+        }, 1000 / CFG.fps);
+      });
+  }, 400); /* 等游戏首帧渲染出来 */
+});
+</script>
+</body>
+</html>
