@@ -1,0 +1,10 @@
+# macOS 系统文件
+.DS_Store
+
+# 构建产物：Mac App 包
+*.app
+
+# 图标构建产物（中间目录与生成的 icns 均不入库；
+# 图标原图 mac/icon_1024.png 是源文件，需要保留）
+AppIcon.iconset/
+*.icns
