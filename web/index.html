@@ -264,7 +264,15 @@ function sfxFusion() {
   }
   noiseAt(t0, 0.4, 0.16, 5200, 'highpass', master);
 }
-function sfxShieldBlock() { tone(1350, 900, 0.05, 'square', 0.07); }
+/* 护盾格挡音效节流：甩鞭每帧命中护盾正面时会反复触发本音效，
+   不节流每秒叠加约 60 个振荡器，形成连续刺耳杂音；节流到 150ms 并降低音量 */
+var lastShieldBlockSfx = 0;
+function sfxShieldBlock() {
+  var n = performance.now();
+  if (n - lastShieldBlockSfx < 150) return;
+  lastShieldBlockSfx = n;
+  tone(1350, 900, 0.05, 'square', 0.05);
+}
 function sfxSnipe() { tone(1500, 180, 0.2, 'sawtooth', 0.16); noiseBurst(0.12, 0.2, 2600); }
 function sfxMineDrop() { tone(340, 260, 0.08, 'sine', 0.1); }
 function sfxContinue() {
@@ -837,7 +845,9 @@ function acquireLock(p) {
   var best = null, bd = 1e12;
   for (var i = 0; i < enemies.length; i++) {
     var e = enemies[i];
-    if (e.dead || e.y > p.y - 10 || e.y < -20) continue;
+    /* 修复：锁定 y 窗口原为 e.y > p.y-10 即排除，导致玩家飞到悬停敌机上方时
+       鞭子永远无法锁定（甩鞭可向下弯曲，无需限制敌机必须在机头上方） */
+    if (e.dead || e.y > H + 20 || e.y < -20) continue;
     if (Math.abs(e.x - p.x) > 170) continue;
     var d2 = (e.x - p.x) * (e.x - p.x) + (e.y - p.y) * (e.y - p.y);
     if (d2 < bd) { bd = d2; best = e; }
@@ -850,7 +860,9 @@ function updateWhip(p, dt) {
     wp.nodes = [];
     for (var i = 0; i < WHIP_N; i++) wp.nodes.push({ x: p.x, y: p.y - 16 - (p.y - 16) * i / (WHIP_N - 1), vx: 0, vy: 0 });
   }
-  if (wp.locked && (wp.locked.dead || wp.locked.gone || wp.locked.y > p.y + 24)) wp.locked = null;
+  /* 修复：锁定解除条件原为 locked.y > p.y+24，与上面的锁定窗口一样会把
+     玩家下方的悬停敌机立即解锁；改为仅飞出屏幕底部才解除 */
+  if (wp.locked && (wp.locked.dead || wp.locked.gone || wp.locked.y > H + 30)) wp.locked = null;
   if (!wp.locked) wp.locked = acquireLock(p);
   var ax = p.x, ay = p.y - 16;
   var tx = wp.locked ? wp.locked.x : p.x;
@@ -858,6 +870,9 @@ function updateWhip(p, dt) {
   var stiffBase = 38 + p.lvl * 6;
   for (i = 0; i < WHIP_N; i++) {
     var n = wp.nodes[i];
+    /* 修复：鞭根（第 1 个节点）每帧硬钉在机头锚点并清零速度，
+       防止玩家高速移动时弹簧滞后导致鞭根脱离机头；其余节点保持甩鞭惯性 */
+    if (i === 0) { n.x = ax; n.y = ay; n.vx = 0; n.vy = 0; continue; }
     var f = i / (WHIP_N - 1);
     var rx = ax + (tx - ax) * f, ry = ay + (ty - ay) * f;
     var stiff = i === WHIP_N - 1 ? stiffBase * 2.4 : stiffBase;
@@ -876,12 +891,15 @@ function updateWhip(p, dt) {
   var touchW = 4 + p.lvl * 2 + 8;
   for (var j = 0; j < enemies.length; j++) {
     var e = enemies[j];
-    if (e.dead || e === wp.locked || e.y > p.y) continue;
+    /* 修复：擦碰判定原为 e.y > p.y 即跳过，玩家下方的敌机永远不被鞭身擦到 */
+    if (e.dead || e === wp.locked || e.y > H + 20) continue;
     for (i = 1; i < WHIP_N; i += 2) {
       var nn = wp.nodes[i];
       var dx = e.x - nn.x, dy = e.y - nn.y, rr = e.r + touchW;
       if (dx * dx + dy * dy < rr * rr) {
-        damageEnemy(e, dps * 0.4 * dt, p.x, p.y);
+        /* 修复：伤害源改为实际擦碰的鞭身节点位置（原为玩家位置），
+           鞭身绕到护盾兵侧后方时可正确打出双倍伤害，不再被正面护盾误拦 */
+        damageEnemy(e, dps * 0.4 * dt, nn.x, nn.y);
         if (Math.random() < dt * 10) spark(nn.x, nn.y);
         break;
       }
@@ -899,8 +917,8 @@ function drawWhip(p) {
   ctx.globalCompositeOperation = 'lighter';
   function pathThrough(offset) {
     ctx.beginPath();
-    var n0 = wp.nodes[0];
-    ctx.moveTo(n0.x, n0.y);
+    /* 修复：绘制路径也从机头锚点起笔，与硬钉的物理鞭根保持一致 */
+    ctx.moveTo(p.x, p.y - 16);
     for (var i = 1; i < WHIP_N; i++) {
       var n = wp.nodes[i];
       var off = Math.sin(tt + i * 1.7) * (1.2 + p.lvl * 0.5) * (i / WHIP_N) * offset;
@@ -930,6 +948,40 @@ function drawWhip(p) {
     ctx.stroke();
   }
   ctx.restore();
+}
+
+/* 电浆鞭持续嗡嗡声：每名玩家一条长寿命 oscillator+gain（最多 2 条），
+   仅在 武器=blue 且 mode==='playing' 且玩家存活 时发声，否则淡出并 stop，
+   替代高频重复触发音效，避免每帧创建振荡器叠加成刺耳杂音或泄漏累积 */
+var whipHum = [null, null];
+function whipHumUpdate() {
+  if (!AC) return;
+  var i, p, want, hum;
+  for (i = 0; i < 2; i++) {
+    p = players[i];
+    want = !!(p && soundOn && mode === 'playing' && p.alive && p.weapon === 'blue');
+    hum = whipHum[i];
+    if (want && !hum) {
+      var o = AC.createOscillator(), g = AC.createGain();
+      o.type = 'sawtooth';
+      o.frequency.value = 78 + i * 9;
+      g.gain.value = 0;
+      g.gain.setTargetAtTime(0.03, AC.currentTime, 0.09); /* 淡入防止爆音 */
+      o.connect(g); g.connect(master);
+      o.start();
+      whipHum[i] = { o: o, g: g };
+    } else if (!want && hum) {
+      try {
+        hum.g.gain.setTargetAtTime(0, AC.currentTime, 0.04); /* 淡出 */
+        hum.o.stop(AC.currentTime + 0.2);                    /* 确保 stop，osc 不泄漏累积 */
+      } catch (e) {}
+      whipHum[i] = null;
+    }
+  }
+  /* 轻微音高抖动，模拟电弧质感 */
+  for (i = 0; i < 2; i++) {
+    if (whipHum[i]) whipHum[i].o.frequency.value = 78 + i * 9 + Math.sin(gameT * 21 + i * 2.3) * 5;
+  }
 }
 
 /* 爆炸：彩色碎屑 + 多环冲击波 */
@@ -2462,6 +2514,7 @@ function frame(now) {
   musTrack = desiredTrack();
   if (mode === 'playing') updatePlaying(dt);
   else updateAmbient(raw);
+  whipHumUpdate(); /* 电浆鞭嗡嗡声状态机：playing/存活/蓝武 之外立即淡出停止 */
   if (bombBlast) { bombBlast.t -= raw; if (bombBlast.t <= 0) bombBlast = null; }
   draw();
   syncDom();

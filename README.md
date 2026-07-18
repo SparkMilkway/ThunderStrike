@@ -1,5 +1,9 @@
 # 雷霆战机 Thunder Strike
 
+<img src="assets/icon_1024.png" alt="雷霆战机图标" width="128">
+
+![雷霆战机 Banner](assets/banner.png)
+
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 ![Platform: Web/macOS](https://img.shields.io/badge/Platform-Web%20%2F%20macOS-blue.svg)
 ![Engine: Vanilla JS](https://img.shields.io/badge/Engine-Vanilla%20JS%20%2B%20Canvas%202D-orange.svg)
@@ -20,6 +24,12 @@
 - **WebAudio 全合成音频**：标题 / 战斗 / Boss 三轨音序器音乐自动切换，全部音效由振荡器与噪声实时合成，无任何音频资源文件
 - **通关与无尽模式**：通关后有结算场景；也可按 C 续命进入无尽挑战，冲击本地最高分
 - **炸弹清屏、补给机道具、触屏支持**
+
+## 游戏截图 / Screenshots
+
+| 主菜单 | 战斗画面 | Boss 战 |
+| --- | --- | --- |
+| ![主菜单](assets/screenshot-menu.png) | ![战斗画面](assets/screenshot-gameplay.png) | ![Boss 战](assets/screenshot-boss.png) |
 
 ## 操作说明
 
