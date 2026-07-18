@@ -623,7 +623,8 @@ function mkWeaver(x, y, dir) {
   enemies.push({ type: 'weaver', x: x, y: y, dir: dir, baseY: y, hp: Math.round((2 + Math.floor(wave / 5)) * hpMul()), r: 12, t: 0, fireT: rand(1.6, 2.6), score: 150, hitT: 0 });
 }
 function spawnGunboat(x) {
-  enemies.push({ type: 'gunboat', x: x, y: -36, stopY: rand(95, 165), baseX: x, hp: Math.round((20 + wave * 2) * hpMul()), r: 24, t: 0, fireT: 1.3, n: 0, score: 500, hitT: 0 });
+  /* mt：游走计时器，到达 stopY 后才从 0 累加，保证入场->游走横向位置连续 */
+  enemies.push({ type: 'gunboat', x: x, y: -36, stopY: rand(95, 165), baseX: x, hp: Math.round((20 + wave * 2) * hpMul()), r: 24, t: 0, mt: 0, fireT: 1.3, n: 0, score: 500, hitT: 0 });
 }
 function spawnCarrier(x) {
   enemies.push({ type: 'carrier', x: x, y: -24, vy: 64, hp: Math.round(6 * hpMul()), r: 15, t: 0, score: 50, hitT: 0 });
@@ -638,7 +639,8 @@ function kamikazeSquad(n) {
 }
 /* 狙击炮塔：悬停蓄力后发射快速长弹 */
 function spawnSniper(x) {
-  enemies.push({ type: 'sniper', x: x, y: -30, stopY: rand(85, 150), baseX: x, hp: Math.round((9 + wave) * hpMul()), r: 15, t: 0, chargeT: 0, score: 350, hitT: 0 });
+  /* mt：游走计时器，到达 stopY 后才从 0 累加，保证入场->游走横向位置连续 */
+  enemies.push({ type: 'sniper', x: x, y: -30, stopY: rand(85, 150), baseX: x, hp: Math.round((9 + wave) * hpMul()), r: 15, t: 0, mt: 0, chargeT: 0, score: 350, hitT: 0 });
 }
 /* 护盾兵：正面 180° 护盾免伤，侧后方双倍伤害 */
 function spawnShielder(x) {
@@ -660,7 +662,8 @@ function spawnBoss() {
   enemies.push({
     type: 'boss', kind: kind, phase: 1, x: W / 2, y: -90,
     hp: hp, maxhp: hp, r: kind === 2 ? 52 : 44,
-    t: 0, fireT: 1.8, pat: 0, patT: 0, rot: 0, score: 5000 + kind * 1000, hitT: 0
+    t: 0, mt: 0, fireT: 1.8, pat: 0, patT: 0, rot: 0, score: 5000 + kind * 1000, hitT: 0
+    /* mt：游走计时器，入场结束后才从 0 累加，避免 sin 相位任意导致横向瞬移 */
   });
   waveBanner('WARNING');
   sfxWarn();
@@ -812,7 +815,10 @@ function updateMissiles(dt) {
           var e2 = enemies[k];
           if (e2.dead) continue;
           var ax = m.x - e2.x, ay = m.y - e2.y;
-          if (ax * ax + ay * ay < blast * blast) damageEnemy(e2, e2 === e ? m.dmg : 4, m.x, m.y);
+          /* 修复：直接被命中的目标必须吃到主伤害。原判定要求目标同时落在爆炸半径
+             blast(50) 内，而命中半径是 e.r+10——大体积 Boss（r=52，命中半径 62）
+             会在 50~62px 环带引爆导弹却不掉血，导致追踪导弹对 Boss 零伤害 */
+          if (e2 === e || ax * ax + ay * ay < blast * blast) damageEnemy(e2, e2 === e ? m.dmg : 4, m.x, m.y);
         }
         hit = true;
         break;
@@ -950,6 +956,9 @@ function spark(x, y) {
 /* hx/hy 为伤害来源位置：护盾兵正面（下方 180°）格挡，侧后方双倍伤害 */
 function damageEnemy(e, d, hx, hy) {
   if (e.dead) return;
+  /* 防御：伤害值不是有限正数（NaN / Infinity / 0 / 负数）时直接忽略，
+     避免非法伤害把敌方 hp 污染成 NaN 导致永远无法击坠 */
+  if (!(d > 0) || !isFinite(d)) return;
   if (e.type === 'shielder' && hx !== undefined) {
     var ang = Math.atan2(hy - e.y, hx - e.x);
     var dd = ((ang - Math.PI / 2 + Math.PI * 3) % TAU) - Math.PI;
@@ -1111,10 +1120,13 @@ function useBomb(p) {
 function updateBoss(e, dt) {
   var enterY = e.kind === 1 ? 168 : e.kind === 2 ? 96 : 112;
   if (e.y < enterY) { e.y += 46 * dt; return; }
+  /* 修复横向跳变：游走相位改用独立计时器 e.mt（入场结束后才从 0 累加），
+     原实现直接用全程累加的 e.t，切换瞬间 sin 相位任意导致 x 瞬移 */
+  e.mt += dt;
   e.rot += dt;
-  if (e.kind === 0) e.x = W / 2 + Math.sin(e.t * 0.55) * 130;
-  else if (e.kind === 1) e.x = W / 2 + Math.sin(e.t * 0.85) * 168;
-  else e.x = W / 2 + Math.sin(e.t * 0.34) * 92;
+  if (e.kind === 0) e.x = W / 2 + Math.sin(e.mt * 0.55) * 130;
+  else if (e.kind === 1) e.x = W / 2 + Math.sin(e.mt * 0.85) * 168;
+  else e.x = W / 2 + Math.sin(e.mt * 0.34) * 92;
   var frac = e.hp / e.maxhp;
   var np = frac > 0.6 ? 1 : frac > 0.3 ? 2 : 3;
   if (np !== e.phase) {
@@ -1453,7 +1465,7 @@ function updatePlaying(dt) {
       if (!reduceMotion && Math.random() < dt * 20) parts.push({ x: e.x - e.dir * 10, y: e.y, vx: -e.dir * 30, vy: 0, life: 0.2, max: 0.2, size: 1.6, c: '#7aff9a' });
     } else if (e.type === 'gunboat') {
       if (e.y < e.stopY) e.y += 44 * dt;
-      else e.x = clamp(e.baseX + Math.sin(e.t * 0.7) * 84, 30, W - 30);
+      else { e.mt += dt; e.x = clamp(e.baseX + Math.sin(e.mt * 0.7) * 84, 30, W - 30); } /* 游走改用 e.mt，修复入场->游走横向瞬移 */
       e.fireT -= dt;
       if (e.fireT <= 0 && e.y > 0) {
         e.n++;
@@ -1501,7 +1513,8 @@ function updatePlaying(dt) {
       /* 狙击炮塔：入场悬停，蓄力 1.6s 后发射快速长弹 */
       if (e.y < e.stopY) e.y += 50 * dt;
       else {
-        e.x = clamp(e.baseX + Math.sin(e.t * 0.5) * 46, 26, W - 26);
+        e.mt += dt; /* 游走改用 e.mt，修复入场->游走横向瞬移 */
+        e.x = clamp(e.baseX + Math.sin(e.mt * 0.5) * 46, 26, W - 26);
         e.chargeT += dt;
         if (e.chargeT >= 1.6) {
           e.chargeT = 0;
