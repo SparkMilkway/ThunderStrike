@@ -98,7 +98,7 @@ html[data-daimon-size-tier="compact"] .stage { aspect-ratio: auto; block-size: 1
     <button id="btnSound" type="button" aria-pressed="true">音效：开</button>
     <button id="btnMusic" type="button" aria-pressed="true">音乐：开</button>
   </div>
-  <p class="help" id="helpText" data-kimi-priority="p2">1P：WASD / 方向键移动 · 空格 / X 炸弹 · 左 Shift 发射追踪导弹　｜　2P：方向键移动 · 回车炸弹 · 右 Shift 发射追踪导弹　｜　P / Esc 暂停菜单 · Game Over 按 C 续命 · 双人贴身 0.6 秒触发 FUSION 合体 · 触屏拖动移动、双击炸弹。捡 H 储存导弹（+10s，上限 30s），按 Shift 才发射。菜单可选单人 / 双人 / 关卡选择 / 四档难度 / 设置 / 排行榜，全 4 大关卡，击败每关关底 Boss 推进，通关后开启无尽挑战。</p>
+  <p class="help" id="helpText" data-kimi-priority="p2">1P：WASD / 方向键移动 · 空格 / X 炸弹 · 左 Ctrl 发射追踪导弹　｜　2P：方向键移动 · 回车炸弹 · 右 Ctrl 发射追踪导弹　｜　P / Esc 暂停菜单 · Game Over 按 C 续命 · 双人贴身 0.6 秒触发 FUSION 合体 · 触屏拖动移动、双击炸弹。捡 H 储存导弹（+10s，上限 30s），按 Ctrl 才发射。菜单可选单人 / 双人 / 关卡选择 / 四档难度 / 设置 / 排行榜，全 4 大关卡，击败每关关底 Boss 推进，通关后开启无尽挑战。</p>
 <script>
 (function () {
 'use strict';
@@ -142,98 +142,102 @@ var STR = {
   doc_title:   { zh: '雷霆战机 · 雷电风格射击', en: 'Thunder Strike · Raiden-style Shmup' },
   h1_main:     { zh: '雷霆战机', en: 'Thunder Strike' },
   h1_sub:      { zh: '雷电风格 · 纵版弹幕射击', en: 'Raiden-style vertical shmup' },
-  st_score:    { zh: '得分', en: 'SCORE' },
-  st_hi:       { zh: '最高', en: 'HI' },
-  st_wave:     { zh: '波次', en: 'WAVE' },
-  st_lives:    { zh: '生命', en: 'LIVES' },
-  st_bombs:    { zh: '炸弹', en: 'BOMBS' },
-  st_weapon:   { zh: '武器', en: 'WEAPON' },
-  btn_start:   { zh: '开始游戏', en: 'START' },
-  btn_restart: { zh: '重新开始', en: 'RESTART' },
-  btn_pause:   { zh: '暂停', en: 'PAUSE' },
-  btn_resume:  { zh: '继续', en: 'RESUME' },
-  sfx_on:      { zh: '音效：开', en: 'SFX: ON' },
-  sfx_off:     { zh: '音效：关', en: 'SFX: OFF' },
-  mus_on:      { zh: '音乐：开', en: 'MUSIC: ON' },
-  mus_off:     { zh: '音乐：关', en: 'MUSIC: OFF' },
+  st_score:    { zh: '得分', en: 'Score' },
+  st_hi:       { zh: '最高', en: 'Hi' },
+  st_wave:     { zh: '波次', en: 'Wave' },
+  st_lives:    { zh: '生命', en: 'Lives' },
+  st_bombs:    { zh: '炸弹', en: 'Bombs' },
+  st_weapon:   { zh: '武器', en: 'Weapon' },
+  btn_start:   { zh: '开始游戏', en: 'Start' },
+  btn_restart: { zh: '重新开始', en: 'Restart' },
+  btn_pause:   { zh: '暂停', en: 'Pause' },
+  btn_resume:  { zh: '继续', en: 'Resume' },
+  sfx_on:      { zh: '音效：开', en: 'SFX: On' },
+  sfx_off:     { zh: '音效：关', en: 'SFX: Off' },
+  mus_on:      { zh: '音乐：开', en: 'Music: On' },
+  mus_off:     { zh: '音乐：关', en: 'Music: Off' },
   help: {
-    zh: '1P：WASD / 方向键移动 · 空格 / X 炸弹 · 左 Shift 发射追踪导弹　｜　2P：方向键移动 · 回车炸弹 · 右 Shift 发射追踪导弹　｜　P / Esc 暂停菜单 · Game Over 按 C 续命 · 双人贴身 0.6 秒触发 FUSION 合体 · 触屏拖动移动、双击炸弹。捡 H 储存导弹（+10s，上限 30s），按 Shift 才发射。菜单可选单人 / 双人 / 关卡选择 / 四档难度 / 语言 / 设置 / 排行榜，全 4 大关卡，击败每关关底 Boss 推进，通关后开启无尽挑战。擦弹加分、连吃奖牌分值递增（受伤重置）。',
-    en: '1P: WASD / Arrows move · Space / X bomb · Left Shift launch homing | 2P: Arrows move · Enter bomb · Right Shift homing | P / Esc pause · C to continue on Game Over · 2P hug 0.6s triggers FUSION · touch drag to move, double-tap to bomb. Grab H to stock missiles (+10s, max 30s), press Shift to fire. Menu: 1P / 2P / stage select / 4 difficulties / language / settings / hi-scores — 4 stages, beat each boss to advance, endless mode after clear. Graze bullets for bonus, chain medals to raise their value (reset when hit).'
+    zh: '1P：WASD / 方向键移动 · 空格 / X 炸弹 · 左 Ctrl 发射追踪导弹　｜　2P：方向键移动 · 回车炸弹 · 右 Ctrl 发射追踪导弹　｜　P / Esc 暂停菜单 · Game Over 按 C 续命 · 双人贴身 0.6 秒触发 FUSION 合体 · 触屏拖动移动、双击炸弹。捡 H 储存导弹（+10s，上限 30s），按 Ctrl 才发射。菜单可选单人 / 双人 / 关卡选择 / 四档难度 / 语言 / 设置 / 排行榜，全 4 大关卡，击败每关关底 Boss 推进，通关后开启无尽挑战。擦弹加分、连吃奖牌分值递增（受伤重置）。双人模式中搭档阵亡会掉落救援核心，拾取可将其复活；武器满级后再捡同色武器触发 8 秒超载。',
+    en: '1P: WASD / Arrows move · Space / X bomb · Left Ctrl launch homing | 2P: Arrows move · Enter bomb · Right Ctrl homing | P / Esc pause · C to continue on Game Over · 2P hug 0.6s triggers FUSION · touch drag to move, double-tap to bomb. Grab H to stock missiles (+10s, max 30s), press Ctrl to fire. Menu: 1P / 2P / stage select / 4 difficulties / language / settings / hi-scores — 4 stages, beat each boss to advance, endless mode after clear. Graze bullets for bonus, chain medals to raise their value (reset when hit). In co-op a fallen partner drops a rescue core — grab it to bring them back; at max weapon level, same-color pickups trigger 8s Overdrive.'
   },
   aria: {
     zh: '雷霆战机游戏画面。1P 用 WASD 移动、空格放炸弹，2P 用方向键移动、回车放炸弹。',
     en: 'Thunder Strike game screen. 1P moves with WASD and bombs with Space; 2P moves with arrow keys and bombs with Enter.'
   },
-  diff_easy:   { zh: '简单', en: 'EASY' },
-  diff_normal: { zh: '普通', en: 'NORMAL' },
-  diff_hard:   { zh: '困难', en: 'HARD' },
-  diff_hell:   { zh: '地狱', en: 'HELL' },
-  w_red:       { zh: '火神炮', en: 'VULCAN' },
-  w_blue:      { zh: '电浆鞭', en: 'PLASMA WHIP' },
-  w_spr:       { zh: '散射炮', en: 'SCATTER' },
+  diff_easy:   { zh: '简单', en: 'Easy' },
+  diff_normal: { zh: '普通', en: 'Normal' },
+  diff_hard:   { zh: '困难', en: 'Hard' },
+  diff_hell:   { zh: '地狱', en: 'Hell' },
+  w_red:       { zh: '火神炮', en: 'Vulcan' },
+  w_blue:      { zh: '电浆鞭', en: 'Plasma Whip' },
+  w_spr:       { zh: '散射炮', en: 'Scatter' },
   f_wlvl:      { zh: '{w} LV{n}！', en: '{w} LV{n}!' },
-  f_hom10:     { zh: '追踪导弹 +10s', en: 'HOMING +10s' },
-  f_homgo:     { zh: '追踪导弹发射！', en: 'HOMING LAUNCH!' },
-  f_homout:    { zh: '追踪导弹耗尽', en: 'HOMING DEPLETED' },
-  f_shield:    { zh: '临时护盾 5s！', en: 'SHIELD 5s!' },
-  f_bfull:     { zh: '炸弹已满 +500', en: 'BOMBS FULL +500' },
-  f_fragbomb:  { zh: '碎片集齐 炸弹 +1！', en: 'FRAGS COMPLETE: BOMB +1!' },
-  f_frag:      { zh: '炸弹碎片 {n}/3', en: 'BOMB FRAG {n}/3' },
-  f_bomb:      { zh: '炸弹 +1', en: 'BOMB +1' },
-  f_shbreak:   { zh: '护盾破碎！', en: 'SHIELD DOWN!' },
-  fu_super:    { zh: '超级火神炮', en: 'SUPER VULCAN' },
-  fu_arc:      { zh: '电弧链', en: 'ARC LINK' },
-  fu_ring:     { zh: '全向弹幕', en: 'OMNI BARRAGE' },
-  fu_mix:      { zh: '协力强化 +50%', en: 'SYNERGY +50%' },
-  hud_endless: { zh: '无尽{n}', en: 'ENDLESS {n}' },
-  hud_cont:    { zh: '续命 ×{n}', en: 'CONT ×{n}' },
-  hud_graze:   { zh: '擦弹', en: 'GRAZE' },
-  hud_medal:   { zh: '奖牌', en: 'MEDAL' },
-  pause_title: { zh: '已暂停', en: 'PAUSED' },
-  pause_resume:{ zh: '继续战斗', en: 'RESUME' },
-  pause_back:  { zh: '返回标题菜单', en: 'BACK TO TITLE' },
-  pause_hint:  { zh: '↑↓ 选择 · Enter 确认 · P / Esc 继续', en: '↑↓ SELECT · ENTER CONFIRM · P / ESC RESUME' },
-  title_main:  { zh: '雷霆战机', en: 'THUNDER STRIKE' },
-  title_sub:   { zh: '雷电风格 · 纵版弹幕射击 · 全 4 大关卡', en: 'RAIDEN-STYLE VERTICAL SHMUP · 4 STAGES' },
-  menu_1p:     { zh: '单人游戏', en: '1P GAME' },
-  menu_2p:     { zh: '双人合作', en: '2P CO-OP' },
-  menu_stage:  { zh: '关卡选择', en: 'STAGE SELECT' },
-  menu_diff:   { zh: '难度：{d}', en: 'DIFFICULTY: {d}' },
-  menu_lang:   { zh: '语言：中文', en: 'LANGUAGE: ENGLISH' },
-  menu_settings:{ zh: '设置', en: 'SETTINGS' },
-  menu_scores: { zh: '排行榜', en: 'HI-SCORES' },
-  title_hint:  { zh: '↑↓ 选择 · Enter 确认 · ←→ 切换难度 / 语言 · 1 / 2 快速开始', en: '↑↓ SELECT · ENTER CONFIRM · ←→ DIFFICULTY / LANGUAGE · 1/2 QUICK START' },
-  legend_v:    { zh: 'V 火神炮', en: 'V VULCAN' },
-  legend_l:    { zh: 'L 电浆鞭', en: 'L WHIP' },
-  legend_s:    { zh: 'S 散射炮', en: 'S SCATTER' },
-  legend_h:    { zh: 'H 导弹储能', en: 'H HOMING' },
-  title_foot:  { zh: '4 大关卡 × 关底 Boss · 双人贴身触发合体技 · 通关后无尽挑战', en: '4 STAGES + BOSSES · 2P FUSION · ENDLESS AFTER CLEAR' },
-  ss_title:    { zh: '关卡选择', en: 'STAGE SELECT' },
-  ss_sub:      { zh: 'STAGE SELECT / PRACTICE', en: 'PRACTICE MODE' },
-  ss_locked:   { zh: '— 未解锁（通关上一关解锁）—', en: '— LOCKED (CLEAR THE PREV STAGE) —' },
-  ss_weapon:   { zh: '初始武器：◀ {w} ▶', en: 'START WEAPON: ◀ {w} ▶' },
-  ss_hint:     { zh: '↑↓ 选关 · ←→ 换武器 · Enter 开打（3 命 3 炸弹 LV1） · Esc 返回', en: '↑↓ STAGE · ←→ WEAPON · ENTER START (3 LIVES 3 BOMBS LV1) · ESC BACK' },
-  set_title:   { zh: '设置', en: 'SETTINGS' },
-  set_disp:    { zh: '画面尺寸', en: 'DISPLAY' },
-  set_mus:     { zh: '音乐音量', en: 'MUSIC VOL' },
-  set_sfx:     { zh: '音效音量', en: 'SFX VOL' },
-  set_back:    { zh: '返回标题菜单', en: 'BACK TO TITLE' },
-  set_hint:    { zh: '↑↓ 选择 · ←→ 调整 · Esc 返回（游戏内暂停菜单不提供改尺寸）', en: '↑↓ SELECT · ←→ ADJUST · ESC BACK' },
-  sc_title:    { zh: '最高分榜 TOP 10', en: 'HI-SCORES TOP 10' },
-  sc_hint:     { zh: 'Esc / Enter 返回', en: 'ESC / ENTER BACK' },
-  ne_title:    { zh: '上榜留名', en: 'ENTER YOUR NAME' },
-  ne_hint:     { zh: '↑↓ / W S 换字母 · ←→ / A D 移动光标 · Enter 确认', en: '↑↓/WS LETTER · ←→/AD CURSOR · ENTER CONFIRM' },
-  go_title:    { zh: '游戏结束', en: 'GAME OVER' },
-  go_newrec:   { zh: '新纪录！', en: 'NEW RECORD!' },
-  go_hi:       { zh: '最高分 {n}', en: 'HI-SCORE {n}' },
-  go_cont:     { zh: '按 C 续命（剩余 {n} 次）', en: 'PRESS C TO CONTINUE ({n} LEFT)' },
-  go_restart:  { zh: '按 Enter 重新开始', en: 'PRESS ENTER TO RESTART' },
-  go_restart2: { zh: '按 Enter 或点击重新开始', en: 'PRESS ENTER OR TAP TO RESTART' },
-  stats_gm:    { zh: '擦弹 {g} ・ 最高牌值 ×{m}', en: 'GRAZE {g} · BEST MEDAL ×{m}' },
-  vic_title:   { zh: '通关达成！', en: 'ALL CLEAR!' },
-  vic_stats:   { zh: '击坠 {k} ・ 用时 {t} ・ {d} ・ {p}', en: 'KILLS {k} · TIME {t} · {d} · {p}' },
-  vic_newrec:  { zh: '新纪录诞生！', en: 'NEW RECORD!' },
-  vic_hint:    { zh: 'Enter 返回标题 ・ 按 C 开启无尽挑战', en: 'ENTER TITLE · C ENDLESS MODE' },
+  f_hom10:     { zh: '追踪导弹 +10s', en: 'Homing +10s' },
+  f_homgo:     { zh: '追踪导弹发射！', en: 'Homing Launch!' },
+  f_homout:    { zh: '追踪导弹耗尽', en: 'Homing Depleted' },
+  f_shield:    { zh: '临时护盾 5s！', en: 'Shield 5s!' },
+  f_bfull:     { zh: '炸弹已满 +500', en: 'Bombs Full +500' },
+  f_fragbomb:  { zh: '碎片集齐 炸弹 +1！', en: 'Frags Complete: Bomb +1!' },
+  f_frag:      { zh: '炸弹碎片 {n}/3', en: 'Bomb Frag {n}/3' },
+  f_bomb:      { zh: '炸弹 +1', en: 'Bomb +1' },
+  f_shbreak:   { zh: '护盾破碎！', en: 'Shield Down!' },
+  f_overdrive: { zh: '超载！', en: 'OVERDRIVE!' }, /* 警报式标语，英文保留大写 */
+  f_rescue:    { zh: '搭档救援！', en: 'Partner Rescued!' },
+  f_core:      { zh: '救援核心！', en: 'Rescue Core!' },
+  hud_ctrl:    { zh: 'Ctrl ▸ 发射', en: 'Ctrl ▸ Fire' },
+  fu_super:    { zh: '超级火神炮', en: 'Super Vulcan' },
+  fu_arc:      { zh: '电弧链', en: 'Arc Link' },
+  fu_ring:     { zh: '全向弹幕', en: 'Omni Barrage' },
+  fu_mix:      { zh: '协力强化 +50%', en: 'Synergy +50%' },
+  hud_endless: { zh: '无尽{n}', en: 'Endless {n}' },
+  hud_cont:    { zh: '续命 ×{n}', en: 'Cont ×{n}' },
+  hud_graze:   { zh: '擦弹', en: 'Graze' },
+  hud_medal:   { zh: '奖牌', en: 'Medal' },
+  pause_title: { zh: '已暂停', en: 'Paused' },
+  pause_resume:{ zh: '继续战斗', en: 'Resume' },
+  pause_back:  { zh: '返回标题菜单', en: 'Back to Title' },
+  pause_hint:  { zh: '↑↓ 选择 · Enter 确认 · P / Esc 继续', en: '↑↓ Select · Enter Confirm · P / Esc Resume' },
+  title_main:  { zh: '雷霆战机', en: 'Thunder Strike' },
+  title_sub:   { zh: '雷电风格 · 纵版弹幕射击 · 全 4 大关卡', en: 'Raiden-style Vertical Shmup · 4 Stages' },
+  menu_1p:     { zh: '单人游戏', en: '1P Game' },
+  menu_2p:     { zh: '双人合作', en: '2P Co-op' },
+  menu_stage:  { zh: '关卡选择', en: 'Stage Select' },
+  menu_diff:   { zh: '难度：{d}', en: 'Difficulty: {d}' },
+  menu_lang:   { zh: '语言：中文', en: 'Language: English' },
+  menu_settings:{ zh: '设置', en: 'Settings' },
+  menu_scores: { zh: '排行榜', en: 'Hi-Scores' },
+  title_hint:  { zh: '↑↓ 选择 · Enter 确认 · ←→ 切换难度 / 语言 · 1 / 2 快速开始', en: '↑↓ Select · Enter Confirm · ←→ Options · 1/2 Quick Start' },
+  legend_v:    { zh: 'V 火神炮', en: 'V Vulcan' },
+  legend_l:    { zh: 'L 电浆鞭', en: 'L Whip' },
+  legend_s:    { zh: 'S 散射炮', en: 'S Scatter' },
+  legend_h:    { zh: 'H 导弹储能', en: 'H Homing' },
+  title_foot:  { zh: '4 大关卡 × 关底 Boss · 双人贴身触发合体技 · 通关后无尽挑战', en: '4 Stages + Bosses · 2P Fusion · Endless After Clear' },
+  ss_title:    { zh: '关卡选择', en: 'Stage Select' },
+  ss_sub:      { zh: 'STAGE SELECT / PRACTICE', en: 'Practice Mode' },
+  ss_locked:   { zh: '— 未解锁（通关上一关解锁）—', en: '— Locked (Clear the Prev Stage) —' },
+  ss_weapon:   { zh: '初始武器：◀ {w} ▶', en: 'Start Weapon: ◀ {w} ▶' },
+  ss_hint:     { zh: '↑↓ 选关 · ←→ 换武器 · Enter 开打（3 命 3 炸弹 LV1） · Esc 返回', en: '↑↓ Stage · ←→ Weapon · Enter Start (3 Lives 3 Bombs LV1) · Esc Back' },
+  set_title:   { zh: '设置', en: 'Settings' },
+  set_disp:    { zh: '画面尺寸', en: 'Display' },
+  set_mus:     { zh: '音乐音量', en: 'Music Vol' },
+  set_sfx:     { zh: '音效音量', en: 'SFX Vol' },
+  set_back:    { zh: '返回标题菜单', en: 'Back to Title' },
+  set_hint:    { zh: '↑↓ 选择 · ←→ 调整 · Esc 返回（游戏内暂停菜单不提供改尺寸）', en: '↑↓ Select · ←→ Adjust · Esc Back' },
+  sc_title:    { zh: '最高分榜 TOP 10', en: 'Hi-Scores Top 10' },
+  sc_hint:     { zh: 'Esc / Enter 返回', en: 'Esc / Enter Back' },
+  ne_title:    { zh: '上榜留名', en: 'Enter Your Name' },
+  ne_hint:     { zh: '↑↓ / W S 换字母 · ←→ / A D 移动光标 · Enter 确认', en: '↑↓/WS Letter · ←→/AD Cursor · Enter Confirm' },
+  go_title:    { zh: '游戏结束', en: 'GAME OVER' }, /* 警报式标语，英文保留大写 */
+  go_newrec:   { zh: '新纪录！', en: 'New Record!' },
+  go_hi:       { zh: '最高分 {n}', en: 'Hi-Score {n}' },
+  go_cont:     { zh: '按 C 续命（剩余 {n} 次）', en: 'Press C to Continue ({n} Left)' },
+  go_restart:  { zh: '按 Enter 重新开始', en: 'Press Enter to Restart' },
+  go_restart2: { zh: '按 Enter 或点击重新开始', en: 'Press Enter or Tap to Restart' },
+  stats_gm:    { zh: '擦弹 {g} ・ 最高牌值 ×{m}', en: 'Graze {g} · Best Medal ×{m}' },
+  vic_title:   { zh: '通关达成！', en: 'All Clear!' },
+  vic_stats:   { zh: '击坠 {k} ・ 用时 {t} ・ {d} ・ {p}', en: 'Kills {k} · Time {t} · {d} · {p}' },
+  vic_newrec:  { zh: '新纪录诞生！', en: 'New Record!' },
+  vic_hint:    { zh: 'Enter 返回标题 ・ 按 C 开启无尽挑战', en: 'Enter Title · C Endless Mode' },
   p_1p:        { zh: '单人', en: '1P' },
   p_2p:        { zh: '双人', en: '2P' }
 };
@@ -657,21 +661,21 @@ function hpMul() { return D().hp * (1 + 0.25 * endlessLoop); } /* 无尽模式�
    无尽模式循环 4 关主题，每轮提升血量 / 密度 / 弹速。 */
 var STAGE_WAVES = 8, STAGE_COUNT = 4;
 var STAGES = [
-  { key: 'nebula', name: '深空巡航', en: 'DEEP SPACE CRUISE', tag: '突破敌军前线巡航编队', tagEn: 'Break through the enemy vanguard patrol',
+  { key: 'nebula', name: '深空巡航', en: 'Deep Space Cruise', tag: '突破敌军前线巡航编队', tagEn: 'Break through the enemy vanguard patrol',
     bossKind: 0, bossTint: null, bossName: null, bossCores: null, bulletC: null,
     bg: { sky: '#04060f', neb: '40,30,90', nebA: 0.28, star: '255,255,255' },
     echo: { time: 0.29, fb: 0.34, wet: 0.5 } },
-  { key: 'lava', name: '熔岩带', en: 'LAVA BELT', tag: '穿越灼热陨石群，逼近岩浆行星', tagEn: 'Cross the burning asteroid field to the magma planet',
+  { key: 'lava', name: '熔岩带', en: 'Lava Belt', tag: '穿越灼热陨石群，逼近岩浆行星', tagEn: 'Cross the burning asteroid field to the magma planet',
     bossKind: 1, bossTint: 'rgba(255,90,40,0.20)', bossName: 'CRAB MECH·炎',
     bossCores: ['#ffb05a', '#ff8a3a', '#ff5a1a'], bulletC: '#ff9a4a',
     bg: { sky: '#0f0504', neb: '95,26,10', nebA: 0.32, star: '255,214,170', rocks: true, lava: true },
     echo: { time: 0.24, fb: 0.3, wet: 0.42 } },
-  { key: 'ruins', name: '翡翠遗迹', en: 'EMERALD RUINS', tag: '沉没于星海的远古环状遗迹', tagEn: 'Ancient ring ruins sunk beneath the star sea',
+  { key: 'ruins', name: '翡翠遗迹', en: 'Emerald Ruins', tag: '沉没于星海的远古环状遗迹', tagEn: 'Ancient ring ruins sunk beneath the star sea',
     bossKind: 2, bossTint: 'rgba(60,255,190,0.18)', bossName: 'MOTHERSHIP·翡',
     bossCores: ['#5affc0', '#3ae8a0', '#1ac880'], bulletC: '#5affc0',
     bg: { sky: '#031008', neb: '10,70,50', nebA: 0.3, star: '190,255,220', rings: true },
     echo: { time: 0.38, fb: 0.46, wet: 0.62 } },
-  { key: 'void', name: '虚空核心', en: 'VOID CORE', tag: '直捣敌母舰所在的虚空核心', tagEn: 'Strike the void core where the mothership waits',
+  { key: 'void', name: '虚空核心', en: 'Void Core', tag: '直捣敌母舰所在的虚空核心', tagEn: 'Strike the void core where the mothership waits',
     bossKind: 2, bossVariant: true, bossTint: 'rgba(150,70,255,0.24)', bossName: 'VOID CORE',
     bossCores: ['#d09aff', '#b06aff', '#8a3aff'], bulletC: '#c07aff',
     bg: { sky: '#070310', neb: '45,15,75', nebA: 0.3, star: '210,190,255', warp: true, mothership: true },
@@ -793,6 +797,7 @@ function mkPlayer(id) {
     id: id, x: W / 2, y: H - 84, r: 10, alive: true, inv: 0,
     weapon: 'red', lvl: 1, fireT: 0, lives: 3, bombs: 3,
     homT: 0, homActive: false, homFireT: 0, /* 追踪导弹副火力：储存秒数 / 是否激活发射中 / 发射计时 */
+    odT: 0,                       /* 武器超载剩余秒数（LV5 满级捡同色武器触发，0=未超载） */
     shieldT: 0, frags: 0,       /* 临时护盾剩余秒数 / 炸弹碎片计数（集齐 3 个兑换 1 炸弹） */
     whip: { nodes: null, locked: null }, bank: 0
   };
@@ -820,6 +825,9 @@ function nearestPlayer(x, y) {
 function fusionMixed() { return fusionOn && players.length === 2 && players[0].weapon !== players[1].weapon; }
 function rateMul() { return fusionMixed() ? 0.67 : 1; }
 function dmgMul() { return fusionMixed() ? 1.5 : 1; }
+/* 武器超载：伤害 +60%（火神炮 / 散射炮 / 电浆鞭；追踪导弹副火力与合体技不受加成） */
+function odMul(p) { return p.odT > 0 ? 1.6 : 1; }
+function odRate(p) { return p.odT > 0 ? 0.75 : 1; } /* 超载射速提升：开火间隔 ×0.75 */
 function bothWeapon(w) { return fusionOn && players.length === 2 && players[0].weapon === w && players[1].weapon === w; }
 
 /* ---------------- starfield ---------------- */
@@ -941,6 +949,7 @@ function gameoverClickAt(gy) {
 window.addEventListener('keydown', function (e) {
   var k = e.key;
   if (k === 'ArrowUp' || k === 'ArrowDown' || k === 'ArrowLeft' || k === 'ArrowRight' || k === ' ') e.preventDefault();
+  if (e.code === 'ControlLeft' || e.code === 'ControlRight') e.preventDefault(); /* Ctrl 是导弹发射键：阻止浏览器默认行为 */
   keys[k.length === 1 ? k.toLowerCase() : k] = true;
   if (mode === 'title') {
     if (k === 'ArrowUp') menuIdx = (menuIdx + MENU_N - 1) % MENU_N;
@@ -1016,9 +1025,9 @@ window.addEventListener('keydown', function (e) {
   if (mode === 'playing') {
     if (k === 'x' || k === 'X' || k === 'b' || k === 'B' || k === ' ' || k === 'q' || k === 'Q') useBomb(players[0]);
     if (k === 'Enter' && numPlayers === 2) useBomb(players[1]);
-    /* 追踪导弹手动释放：1P 左 Shift，2P 右 Shift（用 e.code 区分左右） */
-    if (!e.repeat && e.code === 'ShiftLeft') releaseHoming(players[0]);
-    if (!e.repeat && e.code === 'ShiftRight' && numPlayers === 2) releaseHoming(players[1]);
+    /* 追踪导弹手动释放：1P 左 Ctrl，2P 右 Ctrl（用 e.code 区分左右；preventDefault 避免浏览器快捷键干扰） */
+    if (!e.repeat && e.code === 'ControlLeft') releaseHoming(players[0]);
+    if (!e.repeat && e.code === 'ControlRight' && numPlayers === 2) releaseHoming(players[1]);
   }
 });
 window.addEventListener('keyup', function (e) {
@@ -1250,9 +1259,11 @@ var RED_OFFSETS = [
 ];
 function fireRed(p) {
   var pat = RED_OFFSETS[p.lvl - 1];
-  var dmg = 1 * dmgMul();
+  var od = p.odT > 0;
+  var dmg = 1 * dmgMul() * odMul(p);
   for (var i = 0; i < pat.length; i++) {
-    bullets.push({ x: p.x + pat[i], y: p.y - 14, vx: 0, vy: -560, r: 3, dmg: dmg });
+    /* 超载：弹道加宽发光（od 标记，绘制时加白金光晕并加宽弹体） */
+    bullets.push({ x: p.x + pat[i], y: p.y - 14, vx: 0, vy: -560, r: 3, dmg: dmg, od: od ? 1 : 0 });
   }
   sfxShoot();
 }
@@ -1269,7 +1280,7 @@ function fireSuperVulcan() {
   sfxShoot();
 }
 
-/* --- 追踪导弹：储能制副火力（捡 H 储存 +10s、上限 30s，按 Shift 手动释放；
+/* --- 追踪导弹：储能制副火力（捡 H 储存 +10s、上限 30s，按 Ctrl 手动释放；
    激活后与主武器并行开火直至储存耗尽，不占武器槽） --- */
 var HOM_COUNT = [1, 2, 2, 3, 4];
 function fireHoming(p) {
@@ -1283,7 +1294,7 @@ function fireHoming(p) {
   }
   sfxMissile();
 }
-/* 手动释放追踪导弹：1P 左 Shift / 2P 右 Shift 激活；激活后按 0.32s/发持续发射，
+/* 手动释放追踪导弹：1P 左 Ctrl / 2P 右 Ctrl 激活；激活后按 0.32s/发持续发射，
    储存时间实时扣减，耗尽自动停止；激活中捡 H 可继续补充（上限 30s） */
 function releaseHoming(p) {
   if (!p || !p.alive || mode !== 'playing' || p.homActive || p.homT <= 0) return;
@@ -1296,8 +1307,8 @@ function releaseHoming(p) {
 /* --- 散射炮（Scatter）：扇形弹丸，单颗伤害低但近距离全弹命中爆发高，适合清群 --- */
 var SPR_COUNT = [5, 5, 7, 7, 9];
 function fireSpr(p) {
-  var n = SPR_COUNT[p.lvl - 1];
-  var dmg = 0.5 * dmgMul(); /* 张角加宽后单颗伤害微降，平衡覆盖率提升 */
+  var n = SPR_COUNT[p.lvl - 1] + (p.odT > 0 ? 2 : 0); /* 超载：每扇 +2 弹丸 */
+  var dmg = 0.5 * dmgMul() * odMul(p); /* 张角加宽后单颗伤害微降，平衡覆盖率提升 */
   var spread = 0.9; /* 扇形总张角（弧度） */
   for (var i = 0; i < n; i++) {
     var a = (i / (n - 1) - 0.5) * spread + rand(-0.04, 0.04); /* 轻微扩散随机性 */
@@ -1375,7 +1386,7 @@ function updateMissiles(dt) {
    目标点与侧向弯曲量分别用临界阻尼弹簧（ζ=1，无超调无震荡）跟随：
    玩家高速移动时鞭身像缎带一样柔顺甩尾，但始终连贯、指向明确，绝不杂乱。
    沿曲线取 WHIP_N 个采样点，绘制与伤害判定共用同一组点（所见即所判）；
-   保留 v2 的正确部分：纯接触伤害（鞭梢全 dps、鞭身 0.35 倍、伤害源取接触点）、
+   保留 v2 的正确部分：纯接触伤害（鞭梢全 dps、鞭身 0.30 倍、伤害源取接触点）、
    锁定范围限制与护盾兵侧背判定兼容。 */
 var WHIP_N = 14;
 function whipLen(p) { return 210 + 26 * p.lvl; } /* 束带总长 L */
@@ -1486,10 +1497,12 @@ function updateWhip(p, dt) {
   n0.x = ax; n0.y = ay; /* 鞭根钉死机头：绘制与判定共用采样点，起笔必须精确在锚点 */
 
   /* 4) 纯接触伤害（同 v2）：锁定只负责引导束带，不隔空掉血。
-     鞭梢接触全 dps，鞭身擦碰 0.35 倍；伤害源取实际接触采样点位置，
+     鞭梢接触全 dps（20+18·lvl，平衡下调：必中属性相对其他武器偏强），鞭身擦碰 0.30 倍
+     （超载期 0.5 倍）；伤害源取实际接触采样点位置，
      鞭身绕到护盾兵侧后方时可正确打出双倍伤害 */
   var tip = wp.nodes[WHIP_N - 1];
-  var dps = (26 + 24 * p.lvl) * dmgMul();
+  var dps = (20 + 18 * p.lvl) * dmgMul() * odMul(p);
+  var bodyMul = p.odT > 0 ? 0.5 : 0.3;
   for (var j = 0; j < enemies.length; j++) {
     var e = enemies[j];
     if (e.dead || e.y > H + 20 || e.y < -40) continue;
@@ -1503,7 +1516,7 @@ function updateWhip(p, dt) {
       var nn = wp.nodes[i];
       var bdx = e.x - nn.x, bdy = e.y - nn.y, brr = e.r + 4 + p.lvl;
       if (bdx * bdx + bdy * bdy < brr * brr) {
-        damageEnemy(e, dps * 0.35 * dt, nn.x, nn.y);
+        damageEnemy(e, dps * bodyMul * dt, nn.x, nn.y);
         if (Math.random() < dt * 10) spark(nn.x, nn.y);
         break;
       }
@@ -1514,9 +1527,10 @@ function drawWhip(p) {
   var wp = p.whip;
   if (p.weapon !== 'blue' || !p.alive || mode !== 'playing' || !wp.nodes) return;
   var tt = performance.now() / 46;
-  var wCore = 2 + p.lvl * 1.1;
-  var wGlow = wCore + 4 + p.lvl * 2;
-  var tint = p.id === 0 ? '150,90,255' : '255,120,200';
+  var od = p.odT > 0; /* 超载：束带加粗、光晕转白金色 */
+  var wCore = (2 + p.lvl * 1.1) * (od ? 1.45 : 1);
+  var wGlow = wCore + (4 + p.lvl * 2) * (od ? 1.4 : 1);
+  var tint = od ? '255,226,150' : (p.id === 0 ? '150,90,255' : '255,120,200');
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
   /* 绘制路径严格穿过判定采样点（所见即所判），不再叠加额外抖动 */
@@ -1707,7 +1721,7 @@ function bossDown(e) {
   mines.length = 0;
   score += 2000;
   if (score > hi) hi = score;
-  floats.push({ x: W / 2, y: H / 2 - 40, text: 'WAVE BONUS +2000', t: 2 });
+  floats.push({ x: W / 2, y: H / 2 - 40, text: 'Wave Bonus +2000', t: 2 });
   waveBanner('WAVE CLEAR');
   shakeT = Math.max(shakeT, 0.7);
   stageClearPending = true; /* 关底 Boss 击破：非最终关 -> 关间过场，最终关 -> 通关结算 */
@@ -1730,21 +1744,28 @@ function collectItem(p, it) {
   sfxItem();
   var fx = p.x, fy = p.y - 26;
   if (it.kind === 'P') {
-    if (p.lvl < 5) { p.lvl++; floats.push({ x: fx, y: fy, text: 'POWER UP!', t: 1.2 }); }
+    if (p.lvl < 5) { p.lvl++; floats.push({ x: fx, y: fy, text: 'Power Up!', t: 1.2 }); }
     else { score += 1000; floats.push({ x: fx, y: fy, text: '+1000', t: 1 }); }
   } else if (it.kind === 'V' || it.kind === 'L' || it.kind === 'S') {
     /* 常驻武器：切换或升级，战机头顶弹出「武器名 LVx!」浮动文字 */
     var wKey = it.kind === 'V' ? 'red' : it.kind === 'L' ? 'blue' : 'spr';
     if (p.weapon === wKey) {
       if (p.lvl < 5) { p.lvl++; floats.push({ x: fx, y: fy, text: Tf('f_wlvl', { w: wName(wKey), n: p.lvl }), t: 1.2 }); }
-      else { score += 1000; floats.push({ x: fx, y: fy, text: '+1000', t: 1 }); }
+      else {
+        /* 武器超载（Overdrive）：LV5 满级再捡同色 → 8 秒超载（伤害 +60%、射速/效果增强）；
+           超载期间再捡同色续 4 秒（上限 8 秒） */
+        if (p.odT > 0) p.odT = Math.min(8, p.odT + 4);
+        else { p.odT = 8; tone(300, 1200, 0.35, 'sawtooth', 0.18); tone(600, 1800, 0.3, 'sine', 0.12); }
+        score += 1000;
+        floats.push({ x: fx, y: fy, text: T('f_overdrive'), t: 1.3 });
+      }
     } else {
       p.weapon = wKey;
       if (wKey === 'blue') { p.whip.nodes = null; p.whip.locked = null; }
       floats.push({ x: fx, y: fy, text: Tf('f_wlvl', { w: wName(wKey), n: p.lvl }), t: 1.2 });
     }
   } else if (it.kind === 'H') {
-    /* 追踪导弹储能：+10s 储存（上限 30s），按 Shift 手动释放；激活中再捡继续补充 */
+    /* 追踪导弹储能：+10s 储存（上限 30s），按 Ctrl 手动释放；激活中再捡继续补充 */
     p.homT = Math.min(30, p.homT + 10);
     floats.push({ x: fx, y: fy, text: T('f_hom10'), t: 1.2 });
   } else if (it.kind === 'D') {
@@ -1781,6 +1802,10 @@ function collectItem(p, it) {
       p.bombs++;
       floats.push({ x: fx, y: fy, text: T('f_bomb'), t: 1.2 });
     }
+  } else if (it.kind === 'R') {
+    /* 双人救援核心：搭档拾取 → 所属死亡玩家立即复活；若已被续命救回则核心无害消散 */
+    var rp = players[it.rescue];
+    if (rp && !rp.alive) rescuePartner(rp, p);
   } else {
     score += 500;
     floats.push({ x: fx, y: fy, text: '+500', t: 1 });
@@ -1813,6 +1838,12 @@ function playerHit(p) {
       /* god 调试模式不写持久最高分，避免污染正常纪录 */
       if (!godMode) { try { localStorage.setItem('thunder-strike-hi', String(hi)); } catch (e) {} }
       maybeNameEntry('gameover'); /* 上榜则先进入街机留名界面 */
+    } else if (numPlayers === 2) {
+      /* 双人救援：搭档存活时，死亡处掉落救援核心（缓慢下落，8 秒未拾取消失）；
+         搭档碰到核心即可把死亡玩家复活（见 rescuePartner） */
+      items.push({ x: clamp(p.x, 24, W - 24), y: p.y, vy: 25, kind: 'R', t: 0, life: 8, rescue: p.id });
+      floats.push({ x: p.x, y: p.y - 30, text: T('f_core'), t: 1.6 });
+      tone(880, 320, 0.35, 'sine', 0.2); /* 下沉提示音：有队友待救 */
     }
   } else {
     p.inv = 3;
@@ -1820,6 +1851,24 @@ function playerHit(p) {
     p.y = H - 84;
     p.whip.nodes = null; p.whip.locked = null; /* 复活后鞭绳在新位置重建，避免旧绳被瞬拉 */
   }
+}
+/* 双人救援：存活搭档拾取救援核心 → 死亡玩家在搭档身旁立即复活。
+   复活包：1 条命 / 2.5 秒无敌 / 武器等级 -1（最低 1，与致命一击的减级叠加）/ 炸弹 1 个；
+   无敌与鞭绳重建等处理复用现有复活规则（inv + whip 重置），与护盾道具交互一致 */
+function rescuePartner(rp, by) {
+  rp.alive = true;
+  rp.lives = 1;
+  rp.inv = 2.5;
+  rp.lvl = Math.max(1, rp.lvl - 1);
+  rp.bombs = 1;
+  var side = by.x > W / 2 ? -52 : 52; /* 复活到搭档较空旷的一侧 */
+  rp.x = clamp(by.x + side, 16, W - 16);
+  rp.y = clamp(by.y, H * 0.2, H - 24);
+  rp.whip.nodes = null; rp.whip.locked = null; /* 鞭绳在新位置重建，避免旧绳被瞬拉 */
+  floats.push({ x: rp.x, y: rp.y - 26, text: T('f_rescue'), t: 1.4 });
+  explode(rp.x, rp.y, 18, true);
+  tone(420, 980, 0.28, 'sine', 0.25);  /* 上扬救援音 */
+  tone(630, 1470, 0.32, 'triangle', 0.14);
 }
 /* 续命：全员满 3 命原地复活 + 无敌 3 秒，分数保留 */
 function continueGame() {
@@ -2206,6 +2255,7 @@ function updatePlaying(dt) {
     if (!p.alive) continue;
     if (p.inv > 0) p.inv -= dt;
     if (p.shieldT > 0) p.shieldT -= dt;
+    if (p.odT > 0) p.odT -= dt; /* 武器超载倒计时（死亡/暂停期间与护盾一样冻结） */
     var mv = playerMoveVector(p);
     if (mv.x || mv.y) {
       var l = Math.hypot(mv.x, mv.y);
@@ -2216,20 +2266,20 @@ function updatePlaying(dt) {
     /* 引擎粒子尾焰 */
     if (!reduceMotion && Math.random() < dt * 55) {
       var skin = PLAYER_SKINS[p.id % 2];
-      parts.push({ x: p.x + rand(-3, 3), y: p.y + 13, vx: rand(-10, 10), vy: rand(60, 120), life: rand(0.16, 0.3), max: 0.3, size: rand(1, 2.4), c: skin.flameCss });
+      parts.push({ x: p.x + rand(-3, 3), y: p.y + 13, vx: rand(-10, 10), vy: rand(60, 120), life: rand(0.16, 0.3), max: 0.3, size: rand(1, 2.4), c: p.odT > 0 ? '#ffe9b0' : skin.flameCss }); /* 超载：尾焰粒子转白金色 */
     }
     p.fireT -= dt;
     if (p.weapon === 'red') {
       if (bothWeapon('red')) {
         /* 超级火神炮由 1P 统一从合体点发射 */
         if (p.id === 0 && p.fireT <= 0) { fireSuperVulcan(); p.fireT = 0.11; }
-      } else if (p.fireT <= 0) { fireRed(p); p.fireT = 0.12 * rateMul(); } /* 平行弹道全覆盖后射速微升，总 DPS 较原版约 +8% */
+      } else if (p.fireT <= 0) { fireRed(p); p.fireT = 0.12 * rateMul() * odRate(p); } /* 平行弹道全覆盖后射速微升，总 DPS 较原版约 +8%；超载再提射速 */
     } else if (p.weapon === 'blue') {
       updateWhip(p, dt);
     } else if (p.weapon === 'spr') {
-      if (p.fireT <= 0) { fireSpr(p); p.fireT = 0.24 * rateMul(); }
+      if (p.fireT <= 0) { fireSpr(p); p.fireT = 0.24 * rateMul() * odRate(p); }
     }
-    /* 追踪导弹副火力：仅激活（按 Shift 释放）时发射并实时扣减储存，耗尽自动停止；
+    /* 追踪导弹副火力：仅激活（按 Ctrl 释放）时发射并实时扣减储存，耗尽自动停止；
        未激活时储存冻结保留，死亡/暂停期间同样冻结，换武器不受影响 */
     if (p.homActive) {
       p.homT -= dt;
@@ -2444,6 +2494,11 @@ function updatePlaying(dt) {
     it.t += dt;
     it.y += it.vy * dt;
     it.x += Math.sin(it.t * 2.2) * 14 * dt;
+    /* 救援核心：8 秒未被搭档拾取则消散（核心被错过 → 按现有规则等续命 / Game Over） */
+    if (it.kind === 'R') {
+      it.life -= dt;
+      if (it.life <= 0) { items.splice(i, 1); continue; }
+    }
     if (it.y > H + 20) { items.splice(i, 1); continue; }
     for (pi = 0; pi < players.length; pi++) {
       var ip = players[pi];
@@ -2515,15 +2570,18 @@ function drawPlayer(p) {
   ctx.save();
   ctx.translate(p.x, p.y);
   ctx.rotate(p.bank * 0.28);
-  /* 引擎尾焰（渐变） */
+  /* 引擎尾焰（渐变）；超载时转白金色并拉长 */
+  var od = p.odT > 0;
+  var flRgb = od ? '255,238,190' : skin.flame;
+  var flLen = (od ? 22 : 16);
   var flick = 1 + Math.sin(now / 40 + p.id) * 0.25;
-  var fg = ctx.createLinearGradient(0, 12, 0, 12 + 16 * flick);
-  fg.addColorStop(0, 'rgba(' + skin.flame + ',0.95)');
-  fg.addColorStop(0.5, 'rgba(' + skin.flame + ',0.45)');
-  fg.addColorStop(1, 'rgba(' + skin.flame + ',0)');
+  var fg = ctx.createLinearGradient(0, 12, 0, 12 + flLen * flick);
+  fg.addColorStop(0, 'rgba(' + flRgb + ',0.95)');
+  fg.addColorStop(0.5, 'rgba(' + flRgb + ',0.45)');
+  fg.addColorStop(1, 'rgba(' + flRgb + ',0)');
   ctx.fillStyle = fg;
   ctx.beginPath();
-  ctx.moveTo(-4, 12); ctx.lineTo(4, 12); ctx.lineTo(0, 12 + 16 * flick);
+  ctx.moveTo(-4, 12); ctx.lineTo(4, 12); ctx.lineTo(0, 12 + flLen * flick);
   ctx.closePath(); ctx.fill();
   /* 机身：顶部高光渐变 */
   var hg = ctx.createLinearGradient(0, -17, 0, 13);
@@ -2570,7 +2628,7 @@ function drawPlayerExtras(p) {
   if (!p.alive || mode !== 'playing') return;
   var now = performance.now();
   /* 追踪导弹储能：有储存时头顶显示圆弧余量 + 秒数；
-     激活中变亮并闪动，未激活时常亮暗绿提示可按 Shift 释放 */
+     激活中变亮并闪动，未激活时常亮暗绿提示可按 Ctrl 释放 */
   if (p.homT > 0) {
     var act = p.homActive;
     var flash = act && Math.floor(now / 140) % 2 === 0;
@@ -3045,7 +3103,48 @@ var ITEM_STYLE = {
     ctx.beginPath(); ctx.arc(0, 0, 2, 0, TAU); ctx.fill();
   } }
 };
+/* 救援核心：青色 + 所属玩家主题色双脉冲光晕，十字心形徽章；快消失时闪烁提示 */
+function drawRescueCore(it) {
+  var now = performance.now();
+  var accent = it.rescue === 1 ? '255,154,58' : '57,192,255'; /* 玩家主题色（P1 蓝 / P2 橙） */
+  var pulse = 0.5 + Math.sin(now / 160) * 0.5;
+  var fade = it.life < 2 ? (Math.floor(now / 120) % 2 === 0 ? 0.4 : 1) : 1;
+  ctx.save();
+  ctx.translate(it.x, it.y + Math.sin(it.t * 4) * 2);
+  ctx.globalAlpha = fade;
+  ctx.globalCompositeOperation = 'lighter';
+  var g1 = ctx.createRadialGradient(0, 0, 2, 0, 0, 22);
+  g1.addColorStop(0, 'rgba(90,230,255,' + (0.45 + pulse * 0.3) + ')');
+  g1.addColorStop(1, 'rgba(90,230,255,0)');
+  ctx.fillStyle = g1;
+  ctx.beginPath(); ctx.arc(0, 0, 22, 0, TAU); ctx.fill();
+  var g2 = ctx.createRadialGradient(0, 0, 1, 0, 0, 13);
+  g2.addColorStop(0, 'rgba(' + accent + ',' + (0.35 + (1 - pulse) * 0.4) + ')');
+  g2.addColorStop(1, 'rgba(' + accent + ',0)');
+  ctx.fillStyle = g2;
+  ctx.beginPath(); ctx.arc(0, 0, 13, 0, TAU); ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+  /* 深色底盘 + 青色描边 */
+  ctx.fillStyle = 'rgba(6,12,22,0.9)';
+  ctx.beginPath(); ctx.arc(0, 0, 11, 0, TAU); ctx.fill();
+  ctx.strokeStyle = '#5ae6ff';
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
+  /* 心形（玩家主题色） */
+  ctx.fillStyle = 'rgb(' + accent + ')';
+  ctx.beginPath();
+  ctx.moveTo(0, 5.5);
+  ctx.bezierCurveTo(-7.5, -0.5, -5, -6.5, 0, -2.8);
+  ctx.bezierCurveTo(5, -6.5, 7.5, -0.5, 0, 5.5);
+  ctx.fill();
+  /* 白色十字（救援标识） */
+  ctx.fillStyle = '#eafaff';
+  ctx.fillRect(-1.1, -4.2, 2.2, 7.4);
+  ctx.fillRect(-3.7, -1.5, 7.4, 2.2);
+  ctx.restore();
+}
 function drawItem(it) {
+  if (it.kind === 'R') { drawRescueCore(it); return; } /* 救援核心走专属绘制 */
   ctx.save();
   ctx.translate(it.x, it.y);
   ctx.translate(0, Math.sin(it.t * 4) * 2);
@@ -3256,11 +3355,22 @@ function draw() {
   drawMissiles();
   for (i = 0; i < bullets.length; i++) {
     var b = bullets[i];
-    ctx.fillStyle = b.c || '#ff7a4d';
+    if (b.od) {
+      /* 超载弹丸：白金光晕 + 加宽弹体 */
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = 'rgba(255,232,170,0.35)';
+      ctx.beginPath();
+      ctx.ellipse(b.x, b.y, 6.5, 13, Math.atan2(b.vy, b.vx) + Math.PI / 2, 0, TAU);
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.fillStyle = b.od ? '#ffd98a' : (b.c || '#ff7a4d');
     ctx.beginPath();
-    ctx.ellipse(b.x, b.y, 3, 8, Math.atan2(b.vy, b.vx) + Math.PI / 2, 0, TAU);
+    ctx.ellipse(b.x, b.y, b.od ? 4.2 : 3, b.od ? 9 : 8, Math.atan2(b.vy, b.vx) + Math.PI / 2, 0, TAU);
     ctx.fill();
     ctx.fillStyle = b.c ? '#fff6d0' : '#ffe0c0';
+    if (b.od) ctx.fillStyle = '#fffbe8';
     ctx.fillRect(b.x - 1, b.y - 4, 2, 8);
   }
   /* 敌方子弹：按类型区分视觉（lance 快速长弹 / orb 大型慢速弹 / std 普通） */
@@ -3395,7 +3505,8 @@ function draw() {
 }
 /* HUD 武器栏：彩色小图标 + 中文名 + 等级圆点 */
 function drawWeaponHud(p, alignRight) {
-  var wCol = p.weapon === 'red' ? '#ff8a6a' : p.weapon === 'blue' ? '#c09aff' : '#ffd24a';
+  var od = p.odT > 0;
+  var wCol = od ? '#ffe8aa' : (p.weapon === 'red' ? '#ff8a6a' : p.weapon === 'blue' ? '#c09aff' : '#ffd24a');
   var x0 = alignRight ? W - 12 : 12;
   var dir = alignRight ? -1 : 1;
   /* 彩色小图标 */
@@ -3403,6 +3514,15 @@ function drawWeaponHud(p, alignRight) {
   ctx.translate(x0 + dir * 9, 38);
   drawWeaponGlyph(p.weapon, 0.85);
   ctx.restore();
+  /* 武器超载：图标外圈显示倒计时环（白金色，8 秒满环） */
+  if (od) {
+    var odc = clamp(p.odT / 8, 0, 1);
+    ctx.strokeStyle = 'rgba(255,232,170,0.28)';
+    ctx.lineWidth = 2.6;
+    ctx.beginPath(); ctx.arc(x0 + dir * 9, 38, 13, 0, TAU); ctx.stroke();
+    ctx.strokeStyle = '#ffe8aa';
+    ctx.beginPath(); ctx.arc(x0 + dir * 9, 38, 13, -Math.PI / 2, -Math.PI / 2 + odc * TAU); ctx.stroke();
+  }
   ctx.fillStyle = wCol;
   ctx.font = 'bold 13px "PingFang SC", system-ui, sans-serif';
   ctx.textAlign = alignRight ? 'right' : 'left';
@@ -3421,9 +3541,9 @@ function drawHud() {
   ctx.font = 'bold 15px ui-monospace, Menlo, Consolas, monospace';
   ctx.textAlign = 'left';
   ctx.fillStyle = '#cfe0ff';
-  ctx.fillText('SCORE ' + String(score).padStart(8, '0'), 12, 22);
+  ctx.fillText('Score ' + String(score).padStart(8, '0'), 12, 22);
   ctx.textAlign = 'right';
-  ctx.fillText('HI ' + String(hi).padStart(8, '0'), W - 12, 22);
+  ctx.fillText('Hi ' + String(hi).padStart(8, '0'), W - 12, 22);
   /* 顶部中央：难度（合体时让位给 FUSION） */
   ctx.textAlign = 'center';
   if (fusionOn) {
@@ -3562,6 +3682,30 @@ function drawHomStock(p, x, y, right) {
   ctx.textAlign = right ? 'right' : 'left';
   ctx.fillStyle = p.homT > 0 ? (act ? '#eaffc8' : '#93c982') : 'rgba(147,201,130,0.35)';
   ctx.fillText(Math.ceil(p.homT) + 's', right ? bx - 4 : bx + bw + 4, y + 3);
+  /* 常驻按键提示徽章「Ctrl ▸ 发射」：导弹绿胶囊底纹，低透明度不抢戏；
+     储存为 0 整体变暗，激活中呼吸高亮。宽度按字符数估算（Node 桩无 measureText） */
+  var cap = T('hud_ctrl');
+  ctx.font = 'bold 8px ui-monospace, Menlo, Consolas, monospace';
+  var capW = cap.length * 5.1 + 10;
+  var capX = right ? bx - 30 - capW : bx + bw + 30; /* 秒数文本外侧 */
+  var breathe = act ? 0.75 + Math.sin(performance.now() / 210) * 0.25 : 0.62;
+  ctx.globalAlpha = (p.homT > 0 ? 1 : 0.45) * breathe;
+  ctx.fillStyle = act ? 'rgba(122,223,90,0.18)' : 'rgba(122,223,90,0.08)';
+  ctx.strokeStyle = act ? 'rgba(170,255,130,0.8)' : 'rgba(122,223,90,0.42)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(capX + 6, y - 6);
+  ctx.lineTo(capX + capW - 6, y - 6);
+  ctx.arc(capX + capW - 6, y, 6, -Math.PI / 2, Math.PI / 2);
+  ctx.lineTo(capX + 6, y + 6);
+  ctx.arc(capX + 6, y, 6, Math.PI / 2, Math.PI * 1.5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = act ? '#d8ffb8' : '#8fce7e';
+  ctx.textAlign = 'center';
+  ctx.fillText(cap, capX + capW / 2, y + 3);
+  ctx.globalAlpha = 1;
 }
 function drawVeil(title, sub) {
   ctx.fillStyle = 'rgba(2,4,12,0.62)';
@@ -3720,7 +3864,7 @@ function drawScores() {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffd94d';
   ctx.font = 'bold 15px ui-monospace, Menlo, Consolas, monospace';
-  ctx.fillText('HALL OF FAME', W / 2, H * 0.14);
+  ctx.fillText('Hall of Fame', W / 2, H * 0.14);
   ctx.fillStyle = '#eaf2ff';
   ctx.font = 'bold 26px "PingFang SC", system-ui, sans-serif';
   ctx.fillText(T('sc_title'), W / 2, H * 0.14 + 32);
@@ -3748,12 +3892,12 @@ function drawNameEntry() {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffd94d';
   ctx.font = 'bold 15px ui-monospace, Menlo, Consolas, monospace';
-  ctx.fillText('NEW RECORD!', W / 2, H * 0.24);
+  ctx.fillText('New Record!', W / 2, H * 0.24);
   ctx.fillStyle = '#eaf2ff';
   ctx.font = 'bold 30px "PingFang SC", system-ui, sans-serif';
   ctx.fillText(T('ne_title'), W / 2, H * 0.24 + 40);
   ctx.font = 'bold 18px ui-monospace, Menlo, Consolas, monospace';
-  ctx.fillText('SCORE ' + String(score).padStart(8, '0'), W / 2, H * 0.24 + 74);
+  ctx.fillText('Score ' + String(score).padStart(8, '0'), W / 2, H * 0.24 + 74);
   var blink = Math.floor(performance.now() / 400) % 2 === 0;
   for (var i = 0; i < 3; i++) {
     var x = W / 2 + (i - 1) * 64;
@@ -3820,7 +3964,7 @@ function drawGameover() {
   ctx.fillText(T('go_title'), W / 2, H * 0.4);
   ctx.fillStyle = '#eaf2ff';
   ctx.font = 'bold 18px ui-monospace, Menlo, Consolas, monospace';
-  ctx.fillText('SCORE ' + score, W / 2, H * 0.4 + 42);
+  ctx.fillText('Score ' + score, W / 2, H * 0.4 + 42);
   ctx.fillStyle = score >= hi && score > 0 ? '#ffd94d' : '#9fb2d8';
   ctx.font = '14px "PingFang SC", system-ui, sans-serif';
   ctx.fillText(score >= hi && score > 0 ? T('go_newrec') : Tf('go_hi', { n: hi }), W / 2, H * 0.4 + 70);
@@ -3860,7 +4004,7 @@ function drawVictory() {
   ctx.fillText(T('vic_title'), W / 2, H * 0.26 + 48);
   ctx.fillStyle = '#eaf2ff';
   ctx.font = 'bold 19px ui-monospace, Menlo, Consolas, monospace';
-  ctx.fillText('SCORE ' + score, W / 2, H * 0.26 + 96);
+  ctx.fillText('Score ' + score, W / 2, H * 0.26 + 96);
   ctx.font = '15px ui-monospace, Menlo, Consolas, monospace';
   ctx.fillStyle = '#9fb2d8';
   ctx.fillText(Tf('vic_stats', { k: kills, t: fmtTime(gameT), d: diffName(), p: T(numPlayers === 2 ? 'p_2p' : 'p_1p') }), W / 2, H * 0.26 + 124);
@@ -3939,7 +4083,13 @@ try {
       for (var j = 0; j < events.length; j++) events[j].done = true;
     },
     addScore: function (n) { score += n; if (score > hi) hi = score; },
-    hurt: function () { if (players[0]) { players[0].inv = 0; players[0].shieldT = 0; playerHit(players[0]); } }
+    hurt: function () { if (players[0]) { players[0].inv = 0; players[0].shieldT = 0; playerHit(players[0]); } },
+    /* 录制/截图辅助：给 1P 道具、激活导弹、触发超载、切界面（不影响正常游戏） */
+    give: function (kind) { if (players[0]) collectItem(players[0], { kind: kind }); },
+    hom: function () { if (players[0]) releaseHoming(players[0]); },
+    od: function () { var p = players[0]; if (p) { p.lvl = 5; collectItem(p, { kind: p.weapon === 'blue' ? 'L' : p.weapon === 'spr' ? 'S' : 'V' }); } },
+    start: function (n) { startGame(n || 1); },
+    ui: function (m, l) { if (l) setLang(l); setMode(m); }
   };
 } catch (e) {}
 
