@@ -8,3 +8,10 @@
 # 图标原图 mac/icon_1024.png 是源文件，需要保留）
 AppIcon.iconset/
 *.icns
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
