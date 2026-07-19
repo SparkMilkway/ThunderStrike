@@ -1488,6 +1488,10 @@ var dragPointer = null, pointerLast = null;
   - 手指位移按灵敏度累积为飞机目标点，但目标最多领先飞机 72px；
   - 飞机仍按固定最高速度追向目标，避免手指大幅滑动造成瞬移。
 */
+var TOUCH_DRAG_SENSITIVITY = 0.72;
+var TOUCH_TARGET_LEAD = 72;
+var TOUCH_RESPONSE_DISTANCE = 30;
+var TOUCH_MAX_SPEED = 252;
 var touchMove = {
   active: false,
   pointer: null,
@@ -1556,14 +1560,12 @@ function updateTouchDrag(clientX, clientY) {
   var p = players[0];
   var r = cv.getBoundingClientRect();
   var scale = Math.min(r.width / W, r.height / H) || 1;
-  var sensitivity = 0.72;
-  var targetLead = 72;
-  var dx = (clientX - touchMove.lastClientX) / scale * sensitivity;
-  var dy = (clientY - touchMove.lastClientY) / scale * sensitivity;
+  var dx = (clientX - touchMove.lastClientX) / scale * TOUCH_DRAG_SENSITIVITY;
+  var dy = (clientY - touchMove.lastClientY) / scale * TOUCH_DRAG_SENSITIVITY;
   var nextX = touchMove.targetX + dx;
   var nextY = touchMove.targetY + dy;
-  touchMove.targetX = clamp(clamp(nextX, p.x - targetLead, p.x + targetLead), 16, W - 16);
-  touchMove.targetY = clamp(clamp(nextY, p.y - targetLead, p.y + targetLead), H * 0.2, H - 24);
+  touchMove.targetX = clamp(clamp(nextX, p.x - TOUCH_TARGET_LEAD, p.x + TOUCH_TARGET_LEAD), 16, W - 16);
+  touchMove.targetY = clamp(clamp(nextY, p.y - TOUCH_TARGET_LEAD, p.y + TOUCH_TARGET_LEAD), H * 0.2, H - 24);
   touchMove.lastClientX = clientX;
   touchMove.lastClientY = clientY;
   placeTouchContact(clientX, clientY);
@@ -2702,8 +2704,8 @@ function playerMoveVector(p) {
       小位移保持精细修正，大位移进入满速；目标前置上限保证飞机不会瞬移，
       也不会在手指停止后积压一大段“追赶距离”。
     */
-    mx += clamp((touchMove.targetX - p.x) / 36, -1, 1);
-    my += clamp((touchMove.targetY - p.y) / 36, -1, 1);
+    mx += clamp((touchMove.targetX - p.x) / TOUCH_RESPONSE_DISTANCE, -1, 1);
+    my += clamp((touchMove.targetY - p.y) / TOUCH_RESPONSE_DISTANCE, -1, 1);
   }
   return { x: mx, y: my, touch: usingTouch };
 }
@@ -2838,7 +2840,7 @@ function updatePlaying(dt) {
       var norm = l > 1 ? 1 / l : 1;
       var moveX = mv.x * norm, moveY = mv.y * norm;
       /* 相对拖动采用有限目标前置，且最高速度低于键盘：保留精细躲弹空间并避免瞬移。 */
-      var moveSpeed = mv.touch ? 232 : 272;
+      var moveSpeed = mv.touch ? TOUCH_MAX_SPEED : 272;
       p.x = clamp(p.x + moveX * moveSpeed * dt, 16, W - 16);
       p.y = clamp(p.y + moveY * moveSpeed * dt, H * 0.2, H - 24);
     }
