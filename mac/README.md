@@ -1,6 +1,6 @@
 # 雷霆战机 · Mac 版构建说明
 
-本目录包含《雷霆战机》的 macOS 原生 App 壳：一个约 60 行的 Swift + WKWebView 程序，把 `web/index.html` 打包成 `.app`，并注入与游戏风格一致的深色主题。
+本目录包含《雷霆战机》的 macOS 原生 App 壳：一个轻量 Swift + WKWebView 程序，把 `web/index.html` 打包成 `.app`。Web 与 Mac 共用同一套全屏游戏 UI，原生壳只负责窗口尺寸、本地资源加载与打包。
 
 ## 构建要求
 
@@ -26,7 +26,7 @@ bash build.sh
 
 | 文件 | 作用 |
 | --- | --- |
-| `main.swift` | App 壳源码：创建窗口与 WKWebView，加载游戏 HTML，注入深色主题 CSS |
+| `main.swift` | App 壳源码：创建窗口与 WKWebView，加载游戏 HTML，并响应游戏侧窗口尺寸设置 |
 | `Info.plist` | App 元信息（名称、Bundle ID、最低系统版本等） |
 | `icon_1024.png` | 图标原图（1024×1024），构建时自动生成 `AppIcon.icns` |
 | `build.sh` | 一键构建脚本 |

@@ -29,7 +29,7 @@
 - **四档难度**：从休闲到硬核，敌机密度与弹幕压力逐级提升
 - **WebAudio 全合成音频**：各关卡独立音序器音轨 + Boss 战音乐自动切换，全部音效由振荡器与噪声实时合成，无任何音频资源文件
 - **通关与无尽模式**：通关后有结算场景；也可按 C 续命进入无尽挑战，冲击本地最高分
-- **触屏支持**：拖动移动，双击放炸弹
+- **触屏支持**：拖动移动，提供导弹 / 炸弹 / 暂停按钮，双击仍可快速放炸弹
 
 ## 游戏截图 / Screenshots
 
@@ -58,7 +58,7 @@
 | 暂停 / 暂停菜单 | P 或 Esc | P 或 Esc |
 | 续命 / 进入无尽 | C | C |
 
-移动端支持触屏拖动移动，自动开火。
+移动端支持触屏拖动移动与自动开火，右侧提供导弹、炸弹和暂停按钮。
 
 ## 快速开始
 
@@ -104,7 +104,7 @@ thunder-strike-game/
 - **WebAudio 音序器**：每关独立 chiptune 音轨（标题 / 4 大关卡 / Boss）由 WebAudio 振荡器实时音序播放，场景切换自动切轨；射击、爆炸、拾取等音效全部程序合成
 - **弹簧物理甩鞭**：电浆鞭使用弹簧-阻尼物理模拟鞭体节点，锁定目标后甩出弧线激光
 - **对象池与近炸引信**：弹幕与粒子使用对象池复用；限时追踪导弹带近炸引信，进入范围即引爆造成 AoE 伤害
-- **Swift WKWebView 壳**：Mac 版仅约 60 行 Swift，将游戏 HTML 打包进 `.app`，默认 600×800 窗口与游戏画面档位契约对齐，ad-hoc 签名后即可双击运行
+- **统一 Web / Mac 外壳**：Web 与 Swift WKWebView 壳共用同一套全屏游戏 UI；Mac 端仅处理窗口尺寸与本地打包，默认 600×800，ad-hoc 签名后即可双击运行
 
 ## 贡献
 
@@ -133,7 +133,7 @@ thunder-strike-game/
 - **4 difficulty levels**, from casual to bullet-hell
 - Fully synthesized WebAudio music (per-stage tracks + boss theme, auto-switching) and procedural SFX
 - **Ending + endless mode**: clear the game for the ending scene, or press C to continue into endless mode
-- Touch controls: drag to move, double-tap to bomb
+- Touch controls: drag to move, dedicated homing / bomb / pause buttons, plus double-tap to bomb
 
 ### Controls
 
@@ -144,7 +144,7 @@ thunder-strike-game/
 | Pause menu | P or Esc | P or Esc |
 | Continue / Endless | C | C |
 
-Touch controls (drag to move, auto-fire) are supported on mobile.
+Mobile supports drag movement and auto-fire, with dedicated homing, bomb, and pause controls.
 
 ### Quick Start
 
@@ -157,7 +157,7 @@ Touch controls (drag to move, auto-fire) are supported on mobile.
 - WebAudio sequencer: per-stage chiptune tracks plus a boss theme with automatic scene switching; every sound effect is synthesized from oscillators and noise
 - Spring-damper physics for the plasma whip
 - Object pooling for bullets/particles; proximity-fuse homing missiles
-- ~60-line Swift WKWebView shell for the native macOS app, with a 600×800 default window contract matching the game's display presets
+- Unified full-screen UI shared by Web and the Swift WKWebView shell; the macOS wrapper handles local packaging and the 600×800 default window contract
 
 ### License
 
