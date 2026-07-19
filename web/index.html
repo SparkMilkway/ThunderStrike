@@ -114,10 +114,10 @@ header.kimi-host-safe-header,
 .touch-actions[hidden] { display: none !important; }
 .touch-joystick {
   position: absolute;
-  inset-inline-start: clamp(12px, 4cqi, 22px);
-  inset-block-end: clamp(16px, 5cqi, 28px);
-  inline-size: clamp(92px, 27cqi, 116px);
-  aspect-ratio: 1;
+  inset-inline-start: 0;
+  inset-block-end: 0;
+  inline-size: 54%;
+  block-size: 42%;
   border: 0;
   padding: 0;
   background: transparent;
@@ -127,18 +127,28 @@ header.kimi-host-safe-header,
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
+.touch-joystick-visual {
+  position: absolute;
+  inset-inline-start: clamp(12px, 4cqi, 22px);
+  inset-block-end: clamp(16px, 5cqi, 28px);
+  inline-size: clamp(92px, 27cqi, 116px);
+  aspect-ratio: 1;
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), opacity 120ms ease-out;
+}
 .joystick-ring {
   position: absolute;
   inset: 0;
-  border: 1px solid rgba(114, 186, 255, 0.48);
+  border: 1px solid rgba(114, 186, 255, 0.52);
   background:
     radial-gradient(circle, rgba(114, 186, 255, 0.08) 0 28%, transparent 29%),
     linear-gradient(rgba(91, 131, 190, 0.07) 1px, transparent 1px) 0 0 / 100% 12px,
-    rgba(5, 12, 27, 0.5);
+    rgba(5, 12, 27, 0.46);
   box-shadow:
-    inset 0 0 0 5px rgba(9, 20, 40, 0.24),
+    inset 0 0 0 5px rgba(9, 20, 40, 0.2),
     inset 0 0 24px rgba(76, 139, 211, 0.13),
-    0 6px 22px rgba(0, 0, 0, 0.18);
+    0 6px 22px rgba(0, 0, 0, 0.14);
   clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
 }
 .joystick-ring::before,
@@ -187,6 +197,10 @@ header.kimi-host-safe-header,
   filter: brightness(1.15);
   transition: none;
 }
+.touch-joystick.is-engaged .touch-joystick-visual {
+  opacity: 1;
+  transition: none;
+}
 .touch-joystick-label {
   position: absolute;
   inset-inline: 0;
@@ -214,19 +228,20 @@ header.kimi-host-safe-header,
   position: relative;
   display: grid;
   place-items: center;
-  inline-size: clamp(58px, 17cqi, 72px);
+  inline-size: clamp(58px, 16cqi, 68px);
   aspect-ratio: 1;
   min-block-size: 44px;
   padding: 6px;
   border: 1px solid var(--control-border);
   border-radius: 0;
   background:
-    radial-gradient(circle at 45% 38%, rgba(var(--control-accent-rgb), 0.17), transparent 48%),
-    rgba(6, 14, 28, 0.66);
+    linear-gradient(135deg, rgba(var(--control-accent-rgb), 0.15), transparent 54%),
+    rgba(6, 14, 28, 0.58);
   color: #eaf2ff;
   box-shadow:
+    inset 0 0 0 4px rgba(3, 8, 18, 0.18),
     inset 0 0 16px rgba(var(--control-accent-rgb), 0.13),
-    0 5px 18px rgba(0, 0, 0, 0.2);
+    0 5px 18px rgba(0, 0, 0, 0.16);
   clip-path: polygon(24% 0, 76% 0, 100% 24%, 100% 76%, 76% 100%, 24% 100%, 0 76%, 0 24%);
   font-family: var(--kimi-font-sans, -apple-system, "PingFang SC", sans-serif);
   text-align: center;
@@ -235,6 +250,14 @@ header.kimi-host-safe-header,
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   transition: transform 90ms ease-out, filter 90ms ease-out, opacity 120ms ease-out;
+}
+.touch-actions button::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(var(--control-accent-rgb), 0.22);
+  clip-path: polygon(20% 0, 80% 0, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0 80%, 0 20%);
+  pointer-events: none;
 }
 .touch-actions button::after {
   content: "";
@@ -272,6 +295,8 @@ header.kimi-host-safe-header,
   color: var(--control-muted);
   font: 700 clamp(7px, 2cqi, 8px)/1 ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.04em;
+  padding-block-start: 3px;
+  border-block-start: 1px solid rgba(var(--control-accent-rgb), 0.18);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -286,6 +311,7 @@ header.kimi-host-safe-header,
   --control-accent-rgb: 255, 180, 95;
   --control-border: #966b3e;
   --control-muted: #dbad78;
+  inline-size: clamp(64px, 18cqi, 74px);
 }
 .touch-actions button.is-active {
   filter: brightness(1.16);
@@ -302,8 +328,8 @@ header.kimi-host-safe-header,
   outline-offset: 2px;
 }
 .touch-actions button:disabled {
-  opacity: 0.43;
-  filter: saturate(0.35);
+  opacity: 0.58;
+  filter: saturate(0.42) brightness(0.78);
 }
 .touch-actions .action-pause {
   position: absolute;
@@ -420,9 +446,11 @@ html[data-runtime="mac"] .touch-actions {
     <canvas id="game" width="480" height="640" tabindex="0" role="application" aria-label="雷霆战机游戏画面。1P 用 WASD 移动、空格放炸弹，2P 用方向键移动、回车放炸弹。"></canvas>
     <div class="touch-actions" id="touchActions" aria-label="移动端游戏操作" hidden>
       <div class="touch-joystick" id="touchJoystick" role="application" aria-label="虚拟移动摇杆">
-        <div class="joystick-ring" aria-hidden="true"></div>
-        <div class="joystick-knob" id="touchJoystickKnob" aria-hidden="true"></div>
-        <span class="touch-joystick-label" aria-hidden="true">MOVE / 01</span>
+        <div class="touch-joystick-visual" id="touchJoystickVisual">
+          <div class="joystick-ring" aria-hidden="true"></div>
+          <div class="joystick-knob" id="touchJoystickKnob" aria-hidden="true"></div>
+          <span class="touch-joystick-label" aria-hidden="true">MOVE / 01</span>
+        </div>
       </div>
       <div class="touch-fire">
         <button id="btnTouchHoming" type="button" class="action-homing" aria-label="发射追踪导弹" disabled>
@@ -471,6 +499,7 @@ var btnTouchHoming = document.getElementById('btnTouchHoming');
 var btnTouchBomb = document.getElementById('btnTouchBomb');
 var touchActions = document.getElementById('touchActions');
 var touchJoystickEl = document.getElementById('touchJoystick');
+var touchJoystickVisualEl = document.getElementById('touchJoystickVisual');
 var touchJoystickKnobEl = document.getElementById('touchJoystickKnob');
 var touchPauseLabel = document.getElementById('touchPauseLabel');
 var touchHomingLabel = document.getElementById('touchHomingLabel');
@@ -1504,7 +1533,7 @@ window.addEventListener('keyup', function (e) {
   keys[k.length === 1 ? k.toLowerCase() : k] = false;
 });
 var dragPointer = null, pointerLast = null;
-var touchMove = { x: 0, y: 0, active: false, pointer: null };
+var touchMove = { x: 0, y: 0, active: false, pointer: null, originX: 0, originY: 0 };
 function toGame(clientX, clientY) {
   var r = cv.getBoundingClientRect();
   var scale = Math.min(r.width / W, r.height / H);
@@ -1554,11 +1583,24 @@ function endPointer(e) {
 }
 cv.addEventListener('pointerup', endPointer);
 cv.addEventListener('pointercancel', endPointer);
+function placeTouchJoystick(clientX, clientY) {
+  if (!touchJoystickEl || !touchJoystickVisualEl) return;
+  var zone = touchJoystickEl.getBoundingClientRect();
+  var visual = touchJoystickVisualEl.getBoundingClientRect();
+  var defaultCenterX = touchJoystickVisualEl.offsetLeft + visual.width / 2;
+  var defaultCenterY = touchJoystickVisualEl.offsetTop + visual.height / 2;
+  var inset = visual.width / 2 + 4;
+  var targetX = clamp(clientX - zone.left, inset, zone.width - inset);
+  var targetY = clamp(clientY - zone.top, inset, zone.height - inset - 8);
+  var shiftX = targetX - defaultCenterX;
+  var shiftY = targetY - defaultCenterY;
+  touchJoystickVisualEl.style.transform =
+    'translate3d(' + shiftX.toFixed(1) + 'px,' + shiftY.toFixed(1) + 'px,0)';
+}
 function updateTouchJoystick(clientX, clientY) {
-  if (!touchJoystickEl || !touchJoystickKnobEl) return;
-  var r = touchJoystickEl.getBoundingClientRect();
-  var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-  var dx = clientX - cx, dy = clientY - cy;
+  if (!touchJoystickVisualEl || !touchJoystickKnobEl) return;
+  var r = touchJoystickVisualEl.getBoundingClientRect();
+  var dx = clientX - touchMove.originX, dy = clientY - touchMove.originY;
   var distance = Math.hypot(dx, dy);
   var knobSize = touchJoystickKnobEl.getBoundingClientRect().width;
   var travel = Math.max(18, (r.width - knobSize) / 2 - 3);
@@ -1580,7 +1622,10 @@ function resetTouchJoystick(pointerId) {
   touchMove.y = 0;
   touchMove.active = false;
   touchMove.pointer = null;
+  touchMove.originX = 0;
+  touchMove.originY = 0;
   if (touchJoystickEl) touchJoystickEl.classList.remove('is-engaged');
+  if (touchJoystickVisualEl) touchJoystickVisualEl.style.transform = '';
   if (touchJoystickKnobEl) touchJoystickKnobEl.style.transform = '';
 }
 if (touchJoystickEl) {
@@ -1590,8 +1635,11 @@ if (touchJoystickEl) {
     ensureAudio();
     touchMove.pointer = e.pointerId;
     touchMove.active = true;
+    touchMove.originX = e.clientX;
+    touchMove.originY = e.clientY;
     touchJoystickEl.classList.add('is-engaged');
     try { touchJoystickEl.setPointerCapture(e.pointerId); } catch (err) {}
+    placeTouchJoystick(e.clientX, e.clientY);
     updateTouchJoystick(e.clientX, e.clientY);
   });
   touchJoystickEl.addEventListener('pointermove', function (e) {
@@ -2833,7 +2881,7 @@ function updatePlaying(dt) {
       var norm = l > 1 ? 1 / l : 1;
       var moveX = mv.x * norm, moveY = mv.y * norm;
       /* 摇杆采用模拟力度且最高速度低于键盘：保留精细躲弹空间，避免拖拽式瞬移。 */
-      var moveSpeed = mv.touch ? 200 : 272;
+      var moveSpeed = mv.touch ? 232 : 272;
       p.x = clamp(p.x + moveX * moveSpeed * dt, 16, W - 16);
       p.y = clamp(p.y + moveY * moveSpeed * dt, H * 0.2, H - 24);
     }
