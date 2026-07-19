@@ -333,7 +333,8 @@ header.kimi-host-safe-header,
 }
 .touch-actions .action-pause {
   position: absolute;
-  inset-block-start: clamp(9px, 3cqi, 14px);
+  /* Canvas 顶部 0-52 逻辑像素属于 Score / Hi / 武器 HUD，暂停键必须位于安全线以下。 */
+  inset-block-start: clamp(50px, 14cqi, 62px);
   inset-inline-end: clamp(9px, 3cqi, 14px);
   inline-size: 44px;
   min-block-size: 44px;
@@ -2632,7 +2633,7 @@ function syncTouchControls() {
   var homingText = !p || p.homT <= 0
     ? T('touch_empty')
     : Tf(p.homActive ? 'touch_active' : 'touch_stock', { n: homingSeconds });
-  var bombText = '×' + (p ? p.bombs : 0);
+  var bombText = '×' + (p ? p.bombs : 0) + (p && p.frags > 0 ? ' · F' + p.frags + '/3' : '');
   var pauseText = mode === 'paused' ? T('touch_paused') : T('touch_running');
   if (touchHomingState && touchHomingState.textContent !== homingText) touchHomingState.textContent = homingText;
   if (touchBombState && touchBombState.textContent !== bombText) touchBombState.textContent = bombText;
@@ -4199,13 +4200,22 @@ function drawHud() {
     var bossNames = ['DESTROYER', 'CRAB MECH', 'MOTHERSHIP'];
     ctx.fillText((boss.name || bossNames[boss.kind]) + ' · P' + boss.phase, W / 2, 76);
   }
-  /* P1 lives & bombs & frags: bottom-left */
+  /* P1 状态：手机单人模式中炸弹/导弹已由右侧按钮实时显示，避免与左下摇杆重复叠加；
+     仅把生命压缩成一个机体图标 + 数字，放在左上武器 HUD 下方。 */
   if (players.length) {
     var p1 = players[0];
-    for (i = 0; i < p1.lives; i++) drawLifeIcon(20 + i * 22, H - 16, 0);
-    for (i = 0; i < p1.bombs; i++) drawBombIcon(20 + i * 20, H - 38);
-    for (i = 0; i < p1.frags; i++) drawFragIcon(20 + i * 16, H - 56);
-    drawHomStock(p1, 20, H - 72, false);
+    if (isTouchUI() && numPlayers === 1) {
+      drawLifeIcon(18, 72, 0);
+      ctx.textAlign = 'left';
+      ctx.font = 'bold 10px ui-monospace, Menlo, Consolas, monospace';
+      ctx.fillStyle = '#9fb7df';
+      ctx.fillText('×' + p1.lives, 30, 75);
+    } else {
+      for (i = 0; i < p1.lives; i++) drawLifeIcon(20 + i * 22, H - 16, 0);
+      for (i = 0; i < p1.bombs; i++) drawBombIcon(20 + i * 20, H - 38);
+      for (i = 0; i < p1.frags; i++) drawFragIcon(20 + i * 16, H - 56);
+      drawHomStock(p1, 20, H - 72, false);
+    }
   }
   /* P2 or shared-right side */
   if (numPlayers === 2 && players[1]) {
