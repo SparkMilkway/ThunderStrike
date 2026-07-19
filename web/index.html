@@ -17,17 +17,26 @@
   --shell-border: #26314d;
   --shell-surface: #151d33;
   --shell-accent: #6ac0ff;
-  --deck-block-size: 78px;
-  --deck-gap: 8px;
-  --deck-border: #314261;
-  --deck-surface: #08101f;
-  --deck-blue: #72baff;
-  --deck-green: #8fe56f;
-  --deck-orange: #ffb45f;
+  --touch-blue: #72baff;
+  --touch-green: #8fe56f;
+  --touch-orange: #ffb45f;
+  --viewport-inline: 100vw;
+  --viewport-block: 100dvh;
 }
 .kimi-host-safe-context { container-type: inline-size; }
 [data-kimi-root] { box-sizing: border-box; inline-size: 100%; min-inline-size: 0; max-inline-size: 100%; overflow: visible; }
 [data-kimi-root] * { box-sizing: border-box; min-inline-size: 0; }
+.sr-only {
+  position: absolute !important;
+  inline-size: 1px !important;
+  block-size: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
 
 html, body {
   margin: 0;
@@ -50,8 +59,8 @@ main[data-kimi-root] {
   position: relative;
   display: grid;
   place-items: center;
-  inline-size: 100vw;
-  block-size: 100dvh;
+  inline-size: var(--viewport-inline);
+  block-size: var(--viewport-block);
   padding:
     env(safe-area-inset-top, 0)
     env(safe-area-inset-right, 0)
@@ -68,19 +77,21 @@ header.kimi-host-safe-header,
   display: none !important;
 }
 .stage {
+  position: relative;
   inline-size: min(
     100%,
     var(--game-max-inline),
-    calc((100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 0.75)
+    calc((var(--viewport-block) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 0.75)
   );
   aspect-ratio: 3 / 4;
-  max-block-size: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  max-block-size: calc(var(--viewport-block) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   background: var(--game-bg);
   border: 0;
   border-radius: 0;
   overflow: hidden;
   box-shadow: 0 18px 70px rgba(0, 0, 0, 0.42);
   contain: layout paint;
+  container-type: inline-size;
 }
 .stage canvas {
   inline-size: 100%;
@@ -93,70 +104,133 @@ header.kimi-host-safe-header,
 }
 .stage canvas:focus-visible { outline: 2px solid var(--kimi-color-accent, var(--shell-accent)); outline-offset: -2px; }
 .touch-actions {
-  position: relative;
+  position: absolute;
   z-index: 4;
+  inset: 0;
   display: none;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(78px, 0.78fr);
-  gap: 5px;
-  inline-size: min(
-    100%,
-    var(--game-max-inline),
-    calc(
-      (
-        100dvh
-        - env(safe-area-inset-top, 0px)
-        - env(safe-area-inset-bottom, 0px)
-        - var(--deck-block-size)
-        - var(--deck-gap)
-      ) * 0.75
-    )
-  );
-  block-size: var(--deck-block-size);
-  padding: 8px 6px 5px;
-  border: 1px solid var(--deck-border);
-  background:
-    linear-gradient(90deg, rgba(87, 133, 197, 0.08) 1px, transparent 1px) 0 0 / 18px 100%,
-    linear-gradient(rgba(105, 148, 210, 0.04) 1px, transparent 1px) 0 0 / 100% 9px,
-    var(--deck-surface);
-  box-shadow: inset 0 1px 0 rgba(152, 190, 242, 0.08);
-  clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%, 0 8px);
+  pointer-events: none;
   font-variant-numeric: tabular-nums;
 }
 .touch-actions[hidden] { display: none !important; }
-.touch-actions::before {
-  content: "TACTICAL CONTROL";
+.touch-joystick {
   position: absolute;
-  inset-block-start: 2px;
-  inset-inline-end: 11px;
-  color: rgba(148, 174, 215, 0.4);
-  font: 600 6px/1 ui-monospace, Menlo, Consolas, monospace;
-  letter-spacing: 0.12em;
+  inset-inline-start: clamp(12px, 4cqi, 22px);
+  inset-block-end: clamp(16px, 5cqi, 28px);
+  inline-size: clamp(92px, 27cqi, 116px);
+  aspect-ratio: 1;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #dceaff;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.joystick-ring {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(114, 186, 255, 0.48);
+  background:
+    radial-gradient(circle, rgba(114, 186, 255, 0.08) 0 28%, transparent 29%),
+    linear-gradient(rgba(91, 131, 190, 0.07) 1px, transparent 1px) 0 0 / 100% 12px,
+    rgba(5, 12, 27, 0.5);
+  box-shadow:
+    inset 0 0 0 5px rgba(9, 20, 40, 0.24),
+    inset 0 0 24px rgba(76, 139, 211, 0.13),
+    0 6px 22px rgba(0, 0, 0, 0.18);
+  clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
+}
+.joystick-ring::before,
+.joystick-ring::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  background: rgba(128, 181, 239, 0.19);
+  transform: translate(-50%, -50%);
+}
+.joystick-ring::before {
+  inline-size: 66%;
+  block-size: 1px;
+}
+.joystick-ring::after {
+  inline-size: 1px;
+  block-size: 66%;
+}
+.joystick-knob {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  display: grid;
+  place-items: center;
+  inline-size: clamp(42px, 12cqi, 50px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(150, 204, 255, 0.7);
+  background:
+    radial-gradient(circle at 42% 35%, rgba(202, 229, 255, 0.25), transparent 38%),
+    rgba(20, 45, 77, 0.78);
+  box-shadow:
+    inset 0 0 12px rgba(114, 186, 255, 0.18),
+    0 3px 14px rgba(0, 0, 0, 0.28);
+  clip-path: polygon(26% 0, 74% 0, 100% 26%, 100% 74%, 74% 100%, 26% 100%, 0 74%, 0 26%);
+  transform: translate(-50%, -50%);
+  transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1), filter 120ms ease-out;
+}
+.joystick-knob::before {
+  content: "";
+  inline-size: 7px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(191, 225, 255, 0.8);
+  transform: rotate(45deg);
+}
+.touch-joystick.is-engaged .joystick-knob {
+  filter: brightness(1.15);
+  transition: none;
+}
+.touch-joystick-label {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -13px;
+  color: rgba(156, 191, 229, 0.56);
+  font: 700 7px/1 ui-monospace, Menlo, Consolas, monospace;
+  letter-spacing: 0.18em;
+  text-align: center;
+  pointer-events: none;
+}
+.touch-fire {
+  position: absolute;
+  inset-inline-end: clamp(13px, 4cqi, 22px);
+  inset-block-end: clamp(18px, 5cqi, 28px);
+  display: grid;
+  justify-items: center;
+  gap: clamp(9px, 2.8cqi, 14px);
   pointer-events: none;
 }
 .touch-actions button {
-  --control-accent: var(--deck-blue);
+  --control-accent: var(--touch-blue);
   --control-accent-rgb: 114, 186, 255;
   --control-border: #4c79a8;
   --control-muted: #8eb9df;
   position: relative;
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
-  align-items: center;
-  min-inline-size: 0;
+  place-items: center;
+  inline-size: clamp(58px, 17cqi, 72px);
+  aspect-ratio: 1;
   min-block-size: 44px;
-  padding: 9px 7px 7px;
+  padding: 6px;
   border: 1px solid var(--control-border);
   border-radius: 0;
   background:
-    linear-gradient(135deg, rgba(var(--control-accent-rgb), 0.13), transparent 52%),
-    #0b1425;
+    radial-gradient(circle at 45% 38%, rgba(var(--control-accent-rgb), 0.17), transparent 48%),
+    rgba(6, 14, 28, 0.66);
   color: #eaf2ff;
   box-shadow:
-    inset 3px 0 0 rgba(var(--control-accent-rgb), 0.76),
-    inset 0 -1px 0 rgba(170, 200, 243, 0.08);
-  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+    inset 0 0 16px rgba(var(--control-accent-rgb), 0.13),
+    0 5px 18px rgba(0, 0, 0, 0.2);
+  clip-path: polygon(24% 0, 76% 0, 100% 24%, 100% 76%, 76% 100%, 24% 100%, 0 76%, 0 24%);
   font-family: var(--kimi-font-sans, -apple-system, "PingFang SC", sans-serif);
-  text-align: start;
+  text-align: center;
+  pointer-events: auto;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
@@ -165,9 +239,9 @@ header.kimi-host-safe-header,
 .touch-actions button::after {
   content: "";
   position: absolute;
-  inset-block-start: 5px;
-  inset-inline-end: 5px;
-  inline-size: 12px;
+  inset-block-start: 7px;
+  inset-inline-end: 12px;
+  inline-size: 11px;
   block-size: 2px;
   background: var(--control-accent);
   opacity: 0.72;
@@ -175,18 +249,18 @@ header.kimi-host-safe-header,
 .touch-actions button > span {
   display: grid;
   min-inline-size: 0;
-  gap: 3px;
+  gap: 2px;
 }
 .touch-actions button .key {
   color: var(--control-accent);
-  font: 800 18px/1 ui-monospace, Menlo, Consolas, monospace;
+  font: 800 clamp(15px, 4.8cqi, 20px)/1 ui-monospace, Menlo, Consolas, monospace;
   text-align: center;
   text-shadow: 0 0 10px rgba(var(--control-accent-rgb), 0.5);
 }
 .touch-actions button strong {
   overflow: hidden;
   color: #edf4ff;
-  font-size: 10px;
+  font-size: clamp(8px, 2.5cqi, 10px);
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.04em;
@@ -196,19 +270,19 @@ header.kimi-host-safe-header,
 .touch-actions button small {
   overflow: hidden;
   color: var(--control-muted);
-  font: 700 8px/1 ui-monospace, Menlo, Consolas, monospace;
+  font: 700 clamp(7px, 2cqi, 8px)/1 ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.04em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .touch-actions button.action-homing {
-  --control-accent: var(--deck-green);
+  --control-accent: var(--touch-green);
   --control-accent-rgb: 143, 229, 111;
   --control-border: #527f4b;
   --control-muted: #9acb87;
 }
 .touch-actions button.action-bomb {
-  --control-accent: var(--deck-orange);
+  --control-accent: var(--touch-orange);
   --control-accent-rgb: 255, 180, 95;
   --control-border: #966b3e;
   --control-muted: #dbad78;
@@ -231,56 +305,74 @@ header.kimi-host-safe-header,
   opacity: 0.43;
   filter: saturate(0.35);
 }
-@media (pointer: coarse), (max-width: 759px) {
-  html:not([data-runtime="mac"]) main[data-kimi-root] {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--deck-gap);
-  }
+.touch-actions .action-pause {
+  position: absolute;
+  inset-block-start: clamp(9px, 3cqi, 14px);
+  inset-inline-end: clamp(9px, 3cqi, 14px);
+  inline-size: 44px;
+  min-block-size: 44px;
+  padding: 0;
+  background: rgba(6, 14, 28, 0.58);
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+}
+.touch-actions .action-pause::after {
+  inset-block-start: 6px;
+  inset-inline-end: 6px;
+  inline-size: 8px;
+}
+.touch-actions .action-pause .key {
+  font-size: 14px;
+  letter-spacing: -0.12em;
+  transform: translateX(-1px);
+}
+.touch-actions.is-paused .touch-joystick {
+  opacity: 0.36;
+  pointer-events: none;
+}
+.portrait-guard {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: none;
+  place-items: center;
+  padding: 24px;
+  background:
+    linear-gradient(rgba(77, 113, 169, 0.06) 1px, transparent 1px) 0 0 / 100% 12px,
+    rgba(4, 8, 17, 0.96);
+  color: #dceaff;
+  text-align: center;
+}
+.portrait-guard > div {
+  inline-size: min(280px, 80vw);
+  padding: 22px;
+  border-block: 1px solid rgba(114, 186, 255, 0.38);
+}
+.portrait-guard strong {
+  display: block;
+  margin-block-end: 8px;
+  color: var(--touch-blue);
+  font: 800 14px/1.2 ui-monospace, Menlo, Consolas, monospace;
+  letter-spacing: 0.08em;
+}
+.portrait-guard span {
+  color: #aabbd6;
+  font-size: 13px;
+}
+@media (pointer: coarse) and (orientation: portrait), (max-width: 759px) and (orientation: portrait) {
   html:not([data-runtime="mac"]) .stage {
-    inline-size: min(
-      100%,
-      calc(
-        (
-          100dvh
-          - env(safe-area-inset-top, 0px)
-          - env(safe-area-inset-bottom, 0px)
-          - var(--deck-block-size)
-          - var(--deck-gap)
-        ) * 0.75
-      )
-    );
+    inline-size: min(100%, calc((var(--viewport-block) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 0.75));
     max-inline-size: 100%;
     box-shadow: none;
   }
   html:not([data-runtime="mac"]) .touch-actions { display: grid; }
   html:not([data-runtime="mac"]) .stage canvas { cursor: default; }
 }
-@media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) {
-  html:not([data-runtime="mac"]) main[data-kimi-root] {
-    flex-direction: row;
-    gap: 10px;
-  }
-  html:not([data-runtime="mac"]) .stage {
-    inline-size: calc(
-      (
-        100dvh
-        - env(safe-area-inset-top, 0px)
-        - env(safe-area-inset-bottom, 0px)
-      ) * 0.75
-    );
-  }
-  html:not([data-runtime="mac"]) .touch-actions {
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(3, minmax(44px, 1fr));
-    inline-size: clamp(148px, 24vw, 196px);
-    block-size: min(100%, 230px);
-  }
+@media (pointer: coarse) and (orientation: landscape) {
+  html:not([data-runtime="mac"]) .portrait-guard { display: grid; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .touch-actions button { transition: none; }
+  .touch-actions button,
+  .joystick-knob { transition: none; }
 }
 html[data-daimon-size-tier] body {
   min-block-size: 0;
@@ -326,20 +418,30 @@ html[data-runtime="mac"] .touch-actions {
   </header>
   <div class="stage" data-kimi-priority="p0">
     <canvas id="game" width="480" height="640" tabindex="0" role="application" aria-label="雷霆战机游戏画面。1P 用 WASD 移动、空格放炸弹，2P 用方向键移动、回车放炸弹。"></canvas>
+    <div class="touch-actions" id="touchActions" aria-label="移动端游戏操作" hidden>
+      <div class="touch-joystick" id="touchJoystick" role="application" aria-label="虚拟移动摇杆">
+        <div class="joystick-ring" aria-hidden="true"></div>
+        <div class="joystick-knob" id="touchJoystickKnob" aria-hidden="true"></div>
+        <span class="touch-joystick-label" aria-hidden="true">MOVE / 01</span>
+      </div>
+      <div class="touch-fire">
+        <button id="btnTouchHoming" type="button" class="action-homing" aria-label="发射追踪导弹" disabled>
+          <span class="key">H</span>
+          <span><strong id="touchHomingLabel">导弹</strong><small id="touchHomingState">空仓</small></span>
+        </button>
+        <button id="btnTouchBomb" type="button" class="action-bomb" aria-label="释放炸弹" disabled>
+          <span class="key">B</span>
+          <span><strong id="touchBombLabel">炸弹</strong><small id="touchBombState">×0</small></span>
+        </button>
+      </div>
+      <button id="btnTouchPause" type="button" class="action-pause" aria-label="暂停游戏">
+        <span class="key">II</span>
+        <span class="sr-only"><strong id="touchPauseLabel">暂停</strong><small id="touchPauseState">运行中</small></span>
+      </button>
+    </div>
   </div>
-  <div class="touch-actions" id="touchActions" aria-label="移动端游戏操作" hidden>
-    <button id="btnTouchHoming" type="button" class="action-homing" aria-label="发射追踪导弹" disabled>
-      <span class="key">H</span>
-      <span><strong id="touchHomingLabel">导弹</strong><small id="touchHomingState">空仓</small></span>
-    </button>
-    <button id="btnTouchBomb" type="button" class="action-bomb" aria-label="释放炸弹" disabled>
-      <span class="key">B</span>
-      <span><strong id="touchBombLabel">炸弹</strong><small id="touchBombState">×0</small></span>
-    </button>
-    <button id="btnTouchPause" type="button" aria-label="暂停游戏">
-      <span class="key">II</span>
-      <span><strong id="touchPauseLabel">暂停</strong><small id="touchPauseState">运行中</small></span>
-    </button>
+  <div class="portrait-guard" id="portraitGuard" aria-live="polite">
+    <div><strong>PORTRAIT MODE</strong><span id="portraitGuardText">请将手机旋转至竖屏继续游玩</span></div>
   </div>
   <div class="controls" data-kimi-priority="p1">
     <button id="btnStart" type="button" class="primary">开始游戏</button>
@@ -347,7 +449,7 @@ html[data-runtime="mac"] .touch-actions {
     <button id="btnSound" type="button" aria-pressed="true">音效：开</button>
     <button id="btnMusic" type="button" aria-pressed="true">音乐：开</button>
   </div>
-  <p class="help" id="helpText" data-kimi-priority="p2">1P：WASD / 方向键移动 · 空格 / X 炸弹 · 左 Ctrl 发射追踪导弹　｜　2P：方向键移动 · 回车炸弹 · 右 Ctrl 发射追踪导弹　｜　P / Esc 暂停菜单 · Game Over 按 C 续命 · 双人贴身 0.6 秒触发 FUSION 合体 · 触屏拖动移动、双击炸弹。捡 H 储存导弹（+10s，上限 30s），按 Ctrl 才发射。菜单可选单人 / 双人 / 关卡选择 / 四档难度 / 设置 / 排行榜，全 4 大关卡，击败每关关底 Boss 推进，通关后开启无尽挑战。</p>
+  <p class="help" id="helpText" data-kimi-priority="p2">1P：WASD / 方向键移动 · 空格 / X 炸弹 · 左 Ctrl 发射追踪导弹　｜　2P：方向键移动 · 回车炸弹 · 右 Ctrl 发射追踪导弹　｜　P / Esc 暂停菜单 · Game Over 按 C 续命 · 双人贴身 0.6 秒触发 FUSION 合体 · 手机竖屏使用左侧摇杆移动、右侧按钮释放导弹与炸弹。捡 H 储存导弹（+10s，上限 30s），按 Ctrl 才发射。菜单可选单人 / 双人 / 关卡选择 / 四档难度 / 设置 / 排行榜，全 4 大关卡，击败每关关底 Boss 推进，通关后开启无尽挑战。</p>
 <script>
 (function () {
 'use strict';
@@ -368,12 +470,15 @@ var btnTouchPause = document.getElementById('btnTouchPause');
 var btnTouchHoming = document.getElementById('btnTouchHoming');
 var btnTouchBomb = document.getElementById('btnTouchBomb');
 var touchActions = document.getElementById('touchActions');
+var touchJoystickEl = document.getElementById('touchJoystick');
+var touchJoystickKnobEl = document.getElementById('touchJoystickKnob');
 var touchPauseLabel = document.getElementById('touchPauseLabel');
 var touchHomingLabel = document.getElementById('touchHomingLabel');
 var touchBombLabel = document.getElementById('touchBombLabel');
 var touchPauseState = document.getElementById('touchPauseState');
 var touchHomingState = document.getElementById('touchHomingState');
 var touchBombState = document.getElementById('touchBombState');
+var portraitGuardText = document.getElementById('portraitGuardText');
 var ttlMain = document.getElementById('ttlMain');
 var ttlSub = document.getElementById('ttlSub');
 var lbScore = document.getElementById('lbScore');
@@ -392,6 +497,18 @@ function isTouchUI() {
       (window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 760);
   } catch (e) { return window.innerWidth < 760; }
 }
+/* 移动浏览器地址栏会改变可视高度：以 visualViewport 的实际尺寸驱动画布，而非固定屏幕尺寸。 */
+function syncViewportMetrics() {
+  var viewport = window.visualViewport;
+  var vw = viewport ? viewport.width : window.innerWidth;
+  var vh = viewport ? viewport.height : window.innerHeight;
+  document.documentElement.style.setProperty('--viewport-inline', Math.max(1, Math.round(vw)) + 'px');
+  document.documentElement.style.setProperty('--viewport-block', Math.max(1, Math.round(vh)) + 'px');
+}
+syncViewportMetrics();
+window.addEventListener('resize', syncViewportMetrics, { passive: true });
+window.addEventListener('orientationchange', syncViewportMetrics, { passive: true });
+if (window.visualViewport) window.visualViewport.addEventListener('resize', syncViewportMetrics, { passive: true });
 
 function rand(a, b) { return a + Math.random() * (b - a); }
 function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
@@ -428,6 +545,8 @@ var STR = {
   touch_active:{ zh: '发射中 {n}s', en: 'Active {n}s' },
   touch_running:{ zh: '运行中', en: 'Running' },
   touch_paused:{ zh: '待机', en: 'Standby' },
+  touch_move_aria:{ zh: '虚拟移动摇杆', en: 'Virtual movement stick' },
+  portrait_guard:{ zh: '请将手机旋转至竖屏继续游玩', en: 'Rotate your phone to portrait to continue' },
   touch_start: { zh: '开始战斗', en: 'Start Stage' },
   touch_back:  { zh: '返回', en: 'Back' },
   touch_confirm:{ zh: '确认留名', en: 'Confirm Name' },
@@ -438,8 +557,8 @@ var STR = {
   mus_on:      { zh: '音乐：开', en: 'Music: On' },
   mus_off:     { zh: '音乐：关', en: 'Music: Off' },
   help: {
-    zh: '1P：WASD / 方向键移动 · 空格 / X 炸弹 · 左 Ctrl 发射追踪导弹　｜　2P：方向键移动 · 回车炸弹 · 右 Ctrl 发射追踪导弹　｜　P / Esc 暂停菜单 · Game Over 按 C 续命 · 双人贴身 0.6 秒触发 FUSION 合体 · 触屏拖动移动、双击炸弹。捡 H 储存导弹（+10s，上限 30s），按 Ctrl 才发射。菜单可选单人 / 双人 / 关卡选择 / 四档难度 / 语言 / 设置 / 排行榜，全 4 大关卡，击败每关关底 Boss 推进，通关后开启无尽挑战。擦弹加分、连吃奖牌分值递增（受伤重置）。双人模式中搭档阵亡会掉落救援核心，拾取可将其复活；武器满级后再捡同色武器触发 8 秒超载。',
-    en: '1P: WASD / Arrows move · Space / X bomb · Left Ctrl launch homing | 2P: Arrows move · Enter bomb · Right Ctrl homing | P / Esc pause · C to continue on Game Over · 2P hug 0.6s triggers FUSION · touch drag to move, double-tap to bomb. Grab H to stock missiles (+10s, max 30s), press Ctrl to fire. Menu: 1P / 2P / stage select / 4 difficulties / language / settings / hi-scores — 4 stages, beat each boss to advance, endless mode after clear. Graze bullets for bonus, chain medals to raise their value (reset when hit). In co-op a fallen partner drops a rescue core — grab it to bring them back; at max weapon level, same-color pickups trigger 8s Overdrive.'
+    zh: '1P：WASD / 方向键移动 · 空格 / X 炸弹 · 左 Ctrl 发射追踪导弹　｜　2P：方向键移动 · 回车炸弹 · 右 Ctrl 发射追踪导弹　｜　P / Esc 暂停菜单 · Game Over 按 C 续命 · 双人贴身 0.6 秒触发 FUSION 合体 · 手机竖屏使用左侧摇杆移动、右侧按钮释放导弹与炸弹。捡 H 储存导弹（+10s，上限 30s），按 Ctrl 才发射。菜单可选单人 / 双人 / 关卡选择 / 四档难度 / 语言 / 设置 / 排行榜，全 4 大关卡，击败每关关底 Boss 推进，通关后开启无尽挑战。擦弹加分、连吃奖牌分值递增（受伤重置）。双人模式中搭档阵亡会掉落救援核心，拾取可将其复活；武器满级后再捡同色武器触发 8 秒超载。',
+    en: '1P: WASD / Arrows move · Space / X bomb · Left Ctrl launch homing | 2P: Arrows move · Enter bomb · Right Ctrl homing | P / Esc pause · C to continue on Game Over · 2P hug 0.6s triggers FUSION · on phones, play in portrait with the left stick and right-side Homing/Bomb buttons. Grab H to stock missiles (+10s, max 30s), press Ctrl to fire. Menu: 1P / 2P / stage select / 4 difficulties / language / settings / hi-scores — 4 stages, beat each boss to advance, endless mode after clear. Graze bullets for bonus, chain medals to raise their value (reset when hit). In co-op a fallen partner drops a rescue core — grab it to bring them back; at max weapon level, same-color pickups trigger 8s Overdrive.'
   },
   aria: {
     zh: '雷霆战机游戏画面。1P 用 WASD 移动、空格放炸弹，2P 用方向键移动、回车放炸弹。',
@@ -568,6 +687,8 @@ function applyLangDom() {
   if (touchPauseLabel) touchPauseLabel.textContent = mode === 'paused' ? T('touch_resume') : T('touch_pause');
   if (touchHomingLabel) touchHomingLabel.textContent = T('touch_homing');
   if (touchBombLabel) touchBombLabel.textContent = T('touch_bomb');
+  if (touchJoystickEl) touchJoystickEl.setAttribute('aria-label', T('touch_move_aria'));
+  if (portraitGuardText) portraitGuardText.textContent = T('portrait_guard');
   if (btnTouchPause) btnTouchPause.setAttribute('aria-label', mode === 'paused' ? T('touch_resume') : T('touch_pause'));
   if (btnTouchHoming) btnTouchHoming.setAttribute('aria-label', T('touch_homing'));
   if (btnTouchBomb) btnTouchBomb.setAttribute('aria-label', T('touch_bomb'));
@@ -1382,7 +1503,8 @@ window.addEventListener('keyup', function (e) {
   var k = e.key;
   keys[k.length === 1 ? k.toLowerCase() : k] = false;
 });
-var dragPointer = null, pointerLast = null, lastTap = 0;
+var dragPointer = null, pointerLast = null;
+var touchMove = { x: 0, y: 0, active: false, pointer: null };
 function toGame(clientX, clientY) {
   var r = cv.getBoundingClientRect();
   var scale = Math.min(r.width / W, r.height / H);
@@ -1408,10 +1530,8 @@ cv.addEventListener('pointerdown', function (e) {
     else if (pi === 1) backToTitle();
     return;
   }
-  if (mode !== 'playing' || dragPointer !== null) return;
-  var now = performance.now();
-  if (e.pointerType !== 'mouse' && now - lastTap < 320) useBomb(players[0]);
-  lastTap = now;
+  /* 手机战斗操作只走画布内摇杆/武器键；Canvas 拖动仅保留给桌面鼠标。 */
+  if (mode !== 'playing' || dragPointer !== null || e.pointerType !== 'mouse' || isTouchUI()) return;
   dragPointer = e.pointerId;
   pointerLast = g;
   try { cv.setPointerCapture(e.pointerId); } catch (err) {}
@@ -1434,7 +1554,70 @@ function endPointer(e) {
 }
 cv.addEventListener('pointerup', endPointer);
 cv.addEventListener('pointercancel', endPointer);
+function updateTouchJoystick(clientX, clientY) {
+  if (!touchJoystickEl || !touchJoystickKnobEl) return;
+  var r = touchJoystickEl.getBoundingClientRect();
+  var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  var dx = clientX - cx, dy = clientY - cy;
+  var distance = Math.hypot(dx, dy);
+  var knobSize = touchJoystickKnobEl.getBoundingClientRect().width;
+  var travel = Math.max(18, (r.width - knobSize) / 2 - 3);
+  var visualScale = distance > travel ? travel / distance : 1;
+  var visualX = dx * visualScale, visualY = dy * visualScale;
+  var raw = Math.min(1, distance / travel);
+  var deadzone = 0.16;
+  var strength = raw <= deadzone ? 0 : Math.pow((raw - deadzone) / (1 - deadzone), 1.3);
+  var unitX = distance > 0 ? dx / distance : 0;
+  var unitY = distance > 0 ? dy / distance : 0;
+  touchMove.x = unitX * strength;
+  touchMove.y = unitY * strength;
+  touchJoystickKnobEl.style.transform =
+    'translate(-50%, -50%) translate3d(' + visualX.toFixed(1) + 'px,' + visualY.toFixed(1) + 'px,0)';
+}
+function resetTouchJoystick(pointerId) {
+  if (pointerId !== undefined && touchMove.pointer !== pointerId) return;
+  touchMove.x = 0;
+  touchMove.y = 0;
+  touchMove.active = false;
+  touchMove.pointer = null;
+  if (touchJoystickEl) touchJoystickEl.classList.remove('is-engaged');
+  if (touchJoystickKnobEl) touchJoystickKnobEl.style.transform = '';
+}
+if (touchJoystickEl) {
+  touchJoystickEl.addEventListener('pointerdown', function (e) {
+    if (mode !== 'playing' || touchMove.pointer !== null) return;
+    e.preventDefault();
+    ensureAudio();
+    touchMove.pointer = e.pointerId;
+    touchMove.active = true;
+    touchJoystickEl.classList.add('is-engaged');
+    try { touchJoystickEl.setPointerCapture(e.pointerId); } catch (err) {}
+    updateTouchJoystick(e.clientX, e.clientY);
+  });
+  touchJoystickEl.addEventListener('pointermove', function (e) {
+    if (touchMove.pointer !== e.pointerId) return;
+    e.preventDefault();
+    updateTouchJoystick(e.clientX, e.clientY);
+  });
+  touchJoystickEl.addEventListener('pointerup', function (e) {
+    if (touchMove.pointer !== e.pointerId) return;
+    try { touchJoystickEl.releasePointerCapture(e.pointerId); } catch (err) {}
+    resetTouchJoystick(e.pointerId);
+  });
+  touchJoystickEl.addEventListener('pointercancel', function (e) { resetTouchJoystick(e.pointerId); });
+  touchJoystickEl.addEventListener('lostpointercapture', function (e) { resetTouchJoystick(e.pointerId); });
+}
+window.addEventListener('blur', function () { resetTouchJoystick(); });
+window.addEventListener('orientationchange', function () {
+  resetTouchJoystick();
+  window.setTimeout(function () {
+    try {
+      if (mode === 'playing' && isTouchUI() && window.matchMedia('(orientation: landscape)').matches) togglePause();
+    } catch (e) {}
+  }, 80);
+}, { passive: true });
 document.addEventListener('visibilitychange', function () {
+  if (document.hidden) resetTouchJoystick();
   if (document.hidden && mode === 'playing') togglePause();
 });
 
@@ -2039,9 +2222,12 @@ function killEnemy(e) {
   /* 精英/大型敌人约 15% 掉限时导弹 H（另有每 8 波保底） */
   var elite = e.type === 'gunboat' || e.type === 'sniper' || e.type === 'shielder' || e.type === 'minelayer';
   if (elite && Math.random() < 0.15) dropKind(e.x, e.y, 'H');
-  /* 奖牌连锁：击毁必掉连锁奖牌（不占掉落池权重）；小型神风机 50% 概率掉，控制密度 */
-  if (e.type === 'kamikaze') { if (Math.random() < 0.5) dropKind(e.x, e.y, 'G'); }
-  else dropKind(e.x + rand(-6, 6), e.y, 'G');
+  /* 加分奖牌改为低概率掉落，避免每次击坠都制造拾取物：
+     普通敌机 8%，精英/大型敌机 16%；Boss 不掉，奖励仍由过关分结算。 */
+  var scoreDropChance = elite ? 0.16 : 0.08;
+  if (e.type !== 'boss' && Math.random() < scoreDropChance) {
+    dropKind(e.x + rand(-6, 6), e.y, 'G');
+  }
   /* 稀有掉落：临时护盾 / 炸弹碎片，各约 2.5%，仅击毁敌人时掉落 */
   if (e.type !== 'boss') {
     var rr = Math.random();
@@ -2382,6 +2568,8 @@ function setMode(m) {
   btnPause.disabled = !(m === 'playing' || m === 'paused');
   btnPause.textContent = m === 'paused' ? T('btn_resume') : T('btn_pause');
   if (touchActions) touchActions.hidden = !(m === 'playing' || m === 'paused');
+  if (touchActions) touchActions.classList.toggle('is-paused', m === 'paused');
+  if (m !== 'playing') resetTouchJoystick();
   if (touchPauseLabel) touchPauseLabel.textContent = m === 'paused' ? T('touch_resume') : T('touch_pause');
   if (btnTouchPause) {
     btnTouchPause.disabled = !(m === 'playing' || m === 'paused');
@@ -2507,7 +2695,12 @@ function playerMoveVector(p) {
     if (keys['ArrowUp']) my -= 1;
     if (keys['ArrowDown']) my += 1;
   }
-  return { x: mx, y: my };
+  var usingTouch = p.id === 0 && touchMove.active && isTouchUI();
+  if (usingTouch) {
+    mx += touchMove.x;
+    my += touchMove.y;
+  }
+  return { x: mx, y: my, touch: usingTouch };
 }
 /* 合体状态机：双人均活、距离 < 70px 持续 0.6s 进入，> 110px 解除 */
 function updateFusion(dt) {
@@ -2637,10 +2830,14 @@ function updatePlaying(dt) {
     var mv = playerMoveVector(p);
     if (mv.x || mv.y) {
       var l = Math.hypot(mv.x, mv.y);
-      p.x = clamp(p.x + mv.x / l * 272 * dt, 16, W - 16);
-      p.y = clamp(p.y + mv.y / l * 272 * dt, H * 0.2, H - 24);
+      var norm = l > 1 ? 1 / l : 1;
+      var moveX = mv.x * norm, moveY = mv.y * norm;
+      /* 摇杆采用模拟力度且最高速度低于键盘：保留精细躲弹空间，避免拖拽式瞬移。 */
+      var moveSpeed = mv.touch ? 200 : 272;
+      p.x = clamp(p.x + moveX * moveSpeed * dt, 16, W - 16);
+      p.y = clamp(p.y + moveY * moveSpeed * dt, H * 0.2, H - 24);
     }
-    p.bank += (mv.x - p.bank) * Math.min(1, dt * 10);
+    p.bank += (clamp(mv.x, -1, 1) - p.bank) * Math.min(1, dt * 10);
     /* 引擎粒子尾焰 */
     if (!reduceMotion && Math.random() < dt * 55) {
       var skin = PLAYER_SKINS[p.id % 2];
