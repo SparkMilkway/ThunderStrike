@@ -41,6 +41,10 @@
 
 ![第 2 关熔岩带演示](assets/demo-stage2.gif)
 
+**双人 FUSION 合体技 · 全向弹幕**
+
+![双人 FUSION 合体演示](assets/demo-fusion.gif)
+
 | 主菜单 | 战斗画面 | Boss 战 |
 | --- | --- | --- |
 | ![主菜单](assets/screenshot-menu.png) | ![战斗画面](assets/screenshot-gameplay.png) | ![Boss 战](assets/screenshot-boss.png) |

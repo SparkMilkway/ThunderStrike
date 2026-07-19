@@ -137,6 +137,37 @@ var SCRIPTS = {
     at(2.0, autoOn);                                  /* autoOn 只操纵方向键=2P；1P 静止 */
     at(bombAt, function () { press('x'); });          /* 1P 炸弹 */
     at(Math.max(CFG.duration - 0.5, 1), autoOff);
+  },
+  /* 双人 FUSION 合体：双散射炮（全向弹幕环）
+   * 原理（全部只依赖游戏既有机制，不改 web/）：
+   *  1. 标题菜单 ↓↓→Enter 进「关卡选择」，←→ 把练习模式初始武器换成散射炮(spr)，
+   *     Esc 返回标题 —— startWeapon 是全局变量，'2' 双人开局时双方都会带上散射炮。
+   *  2. P1(WASD) 与 P2(方向键) 同时向对方移动 ~0.23s：出生间距 134px、
+   *     航速 272px/s，汇合后间距 < 70px，静止 0.6s 触发 FUSION。
+   *  3. 之后双键严格同步收放（如 'd'+'ArrowRight'），两机间距不变、
+   *     保持合体编队扫射；双散射合体每 0.75s 释放 360° 金色弹幕环。
+   * 建议配合 --gameq 'god=1&mute=1'，--duration 12。 */
+  fusion: function () {
+    function hold2(k1, k2, ms) {                    /* 双机同步按键：间距不变 */
+      down(k1); down(k2);
+      timers.push(setTimeout(function () { up(k1); up(k2); }, ms));
+    }
+    at(1.2, function () { press('ArrowDown'); });   /* 菜单：单人 → 双人 */
+    at(1.45, function () { press('ArrowDown'); });  /* → 关卡选择 */
+    at(1.9, function () { press('Enter'); });       /* 进入关卡选择 */
+    at(2.4, function () { press('ArrowRight'); });  /* 初始武器：火神炮 → 电浆鞭 */
+    at(2.65, function () { press('ArrowRight'); }); /* → 散射炮 */
+    at(3.1, function () { press('Escape'); });      /* 返回标题（武器选择保持） */
+    at(3.6, function () { press('2'); });           /* 双人开局：双方散射炮 */
+    at(4.4, function () { hold2('d', 'ArrowLeft', 180); });  /* 两侧汇合（间距 ~37px，双机与合体连线可见） */
+    /* 静止 ~0.6s：约 5.3s 触发 FUSION!，随后每 0.75s 一轮 360° 弹幕环 */
+    at(5.8, function () { hold2('d', 'ArrowRight', 600); }); /* 编队右扫 */
+    at(6.6, function () { hold2('a', 'ArrowLeft', 1200); }); /* 编队左扫 */
+    at(8.0, function () { hold2('d', 'ArrowRight', 600); }); /* 回到中央 */
+    at(8.8, function () { hold2('w', 'ArrowUp', 350); });    /* 小幅推进 */
+    at(9.4, function () { hold2('a', 'ArrowLeft', 700); });
+    at(10.3, function () { hold2('d', 'ArrowRight', 700); });
+    at(Math.max(CFG.duration - 0.4, 1), releaseAll);
   }
 };
 

@@ -24,7 +24,7 @@ requestAnimationFrame，必须是真浏览器；窗口前置几秒属正常，**
 | `--duration` | 12 | 录制时长（秒） |
 | `--fps` | 10 | 抓帧率 = GIF 帧率 |
 | `--out` | /tmp/thunder_strike.gif | GIF 输出路径 |
-| `--script` | gameplay | 时间线脚本，可选 `gameplay`（单人+炸弹）/ `menu`（菜单展示）/ `twoplayer`（双人），新脚本加在 `recorder.html` 顶部 `SCRIPTS` |
+| `--script` | gameplay | 时间线脚本，可选 `gameplay`（单人+炸弹）/ `menu`（菜单展示）/ `twoplayer`（双人）/ `fusion`（双人 FUSION 合体：自动选双散射炮→汇合触发合体→编队扫射，建议配 `--gameq 'god=1&mute=1'`），新脚本加在 `recorder.html` 顶部 `SCRIPTS` |
 | `--name` | 同 script | 录制标识名 |
 | `--gameq` | — | 透传给游戏 iframe 的 query，如 `--gameq 'stage=2&god=1&mute=1'`（用游戏调试钩子从第 N 关开始录） |
 | `--width` | 480 | GIF 宽度（游戏原生 480，等比缩放） |
