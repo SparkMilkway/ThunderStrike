@@ -86,8 +86,8 @@ html[data-daimon-size-tier="compact"] .stage { aspect-ratio: auto; block-size: 1
 <body>
 <main class="kimi-host-safe-context" data-kimi-root>
   <header class="kimi-host-safe-header" data-kimi-priority="p0">
-    <h1>雷霆战机<span class="sub">雷电风格 · 纵版弹幕射击</span></h1>
-    <p class="status" role="status">得分 <output id="oScore">0</output> · 最高 <output id="oHi">0</output> · 波次 <output id="oWave">—</output> · 生命 <output id="oLives">3</output> · 炸弹 <output id="oBombs">3</output> · 武器 <output id="oWeapon">火神炮 Lv1</output></p>
+    <h1><span id="ttlMain">雷霆战机</span><span class="sub" id="ttlSub">雷电风格 · 纵版弹幕射击</span></h1>
+    <p class="status" role="status"><span id="lbScore">得分</span> <output id="oScore">0</output> · <span id="lbHi">最高</span> <output id="oHi">0</output> · <span id="lbWave">波次</span> <output id="oWave">—</output> · <span id="lbLives">生命</span> <output id="oLives">3</output> · <span id="lbBombs">炸弹</span> <output id="oBombs">3</output> · <span id="lbWeapon">武器</span> <output id="oWeapon">火神炮 Lv1</output></p>
   </header>
   <div class="stage" data-kimi-priority="p0">
     <canvas id="game" width="480" height="640" tabindex="0" role="application" aria-label="雷霆战机游戏画面。1P 用 WASD 移动、空格放炸弹，2P 用方向键移动、回车放炸弹。"></canvas>
@@ -98,7 +98,7 @@ html[data-daimon-size-tier="compact"] .stage { aspect-ratio: auto; block-size: 1
     <button id="btnSound" type="button" aria-pressed="true">音效：开</button>
     <button id="btnMusic" type="button" aria-pressed="true">音乐：开</button>
   </div>
-  <p class="help" data-kimi-priority="p2">1P：WASD / 方向键移动 · 空格 / X 炸弹　｜　2P：方向键移动 · 回车炸弹　｜　P / Esc 暂停菜单 · Game Over 按 C 续命 · 双人贴身 0.6 秒触发 FUSION 合体 · 触屏拖动移动、双击炸弹。菜单可选单人 / 双人 / 关卡选择 / 四档难度 / 设置 / 排行榜，全 4 大关卡，击败每关关底 Boss 推进，通关后开启无尽挑战。</p>
+  <p class="help" id="helpText" data-kimi-priority="p2">1P：WASD / 方向键移动 · 空格 / X 炸弹 · 左 Shift 发射追踪导弹　｜　2P：方向键移动 · 回车炸弹 · 右 Shift 发射追踪导弹　｜　P / Esc 暂停菜单 · Game Over 按 C 续命 · 双人贴身 0.6 秒触发 FUSION 合体 · 触屏拖动移动、双击炸弹。捡 H 储存导弹（+10s，上限 30s），按 Shift 才发射。菜单可选单人 / 双人 / 关卡选择 / 四档难度 / 设置 / 排行榜，全 4 大关卡，击败每关关底 Boss 推进，通关后开启无尽挑战。</p>
 <script>
 (function () {
 'use strict';
@@ -115,6 +115,14 @@ var btnStart = document.getElementById('btnStart');
 var btnPause = document.getElementById('btnPause');
 var btnSound = document.getElementById('btnSound');
 var btnMusic = document.getElementById('btnMusic');
+var ttlMain = document.getElementById('ttlMain');
+var ttlSub = document.getElementById('ttlSub');
+var lbScore = document.getElementById('lbScore');
+var lbHi = document.getElementById('lbHi');
+var lbWave = document.getElementById('lbWave');
+var lbLives = document.getElementById('lbLives');
+var lbBombs = document.getElementById('lbBombs');
+var lbWeapon = document.getElementById('lbWeapon');
 var reduceMotion = false;
 try { reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
@@ -123,6 +131,146 @@ function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
 function angleLerp(cur, des, maxTurn) {
   var d = ((des - cur + Math.PI * 3) % TAU) - Math.PI;
   return cur + clamp(d, -maxTurn, maxTurn);
+}
+
+/* ---------------- i18n：中英双语字符串表 ----------------
+   全部用户可见文本集中于此；运行时 T(key) 按当前语言取值，Tf(key, map) 支持 {占位} 替换。
+   主菜单「语言 / Language」项即时切换，localStorage ts_lang 持久化，默认中文。 */
+var lang = 'zh';
+try { var l0 = localStorage.getItem('ts_lang'); if (l0 === 'en' || l0 === 'zh') lang = l0; } catch (e) {}
+var STR = {
+  doc_title:   { zh: '雷霆战机 · 雷电风格射击', en: 'Thunder Strike · Raiden-style Shmup' },
+  h1_main:     { zh: '雷霆战机', en: 'Thunder Strike' },
+  h1_sub:      { zh: '雷电风格 · 纵版弹幕射击', en: 'Raiden-style vertical shmup' },
+  st_score:    { zh: '得分', en: 'SCORE' },
+  st_hi:       { zh: '最高', en: 'HI' },
+  st_wave:     { zh: '波次', en: 'WAVE' },
+  st_lives:    { zh: '生命', en: 'LIVES' },
+  st_bombs:    { zh: '炸弹', en: 'BOMBS' },
+  st_weapon:   { zh: '武器', en: 'WEAPON' },
+  btn_start:   { zh: '开始游戏', en: 'START' },
+  btn_restart: { zh: '重新开始', en: 'RESTART' },
+  btn_pause:   { zh: '暂停', en: 'PAUSE' },
+  btn_resume:  { zh: '继续', en: 'RESUME' },
+  sfx_on:      { zh: '音效：开', en: 'SFX: ON' },
+  sfx_off:     { zh: '音效：关', en: 'SFX: OFF' },
+  mus_on:      { zh: '音乐：开', en: 'MUSIC: ON' },
+  mus_off:     { zh: '音乐：关', en: 'MUSIC: OFF' },
+  help: {
+    zh: '1P：WASD / 方向键移动 · 空格 / X 炸弹 · 左 Shift 发射追踪导弹　｜　2P：方向键移动 · 回车炸弹 · 右 Shift 发射追踪导弹　｜　P / Esc 暂停菜单 · Game Over 按 C 续命 · 双人贴身 0.6 秒触发 FUSION 合体 · 触屏拖动移动、双击炸弹。捡 H 储存导弹（+10s，上限 30s），按 Shift 才发射。菜单可选单人 / 双人 / 关卡选择 / 四档难度 / 语言 / 设置 / 排行榜，全 4 大关卡，击败每关关底 Boss 推进，通关后开启无尽挑战。擦弹加分、连吃奖牌分值递增（受伤重置）。',
+    en: '1P: WASD / Arrows move · Space / X bomb · Left Shift launch homing | 2P: Arrows move · Enter bomb · Right Shift homing | P / Esc pause · C to continue on Game Over · 2P hug 0.6s triggers FUSION · touch drag to move, double-tap to bomb. Grab H to stock missiles (+10s, max 30s), press Shift to fire. Menu: 1P / 2P / stage select / 4 difficulties / language / settings / hi-scores — 4 stages, beat each boss to advance, endless mode after clear. Graze bullets for bonus, chain medals to raise their value (reset when hit).'
+  },
+  aria: {
+    zh: '雷霆战机游戏画面。1P 用 WASD 移动、空格放炸弹，2P 用方向键移动、回车放炸弹。',
+    en: 'Thunder Strike game screen. 1P moves with WASD and bombs with Space; 2P moves with arrow keys and bombs with Enter.'
+  },
+  diff_easy:   { zh: '简单', en: 'EASY' },
+  diff_normal: { zh: '普通', en: 'NORMAL' },
+  diff_hard:   { zh: '困难', en: 'HARD' },
+  diff_hell:   { zh: '地狱', en: 'HELL' },
+  w_red:       { zh: '火神炮', en: 'VULCAN' },
+  w_blue:      { zh: '电浆鞭', en: 'PLASMA WHIP' },
+  w_spr:       { zh: '散射炮', en: 'SCATTER' },
+  f_wlvl:      { zh: '{w} LV{n}！', en: '{w} LV{n}!' },
+  f_hom10:     { zh: '追踪导弹 +10s', en: 'HOMING +10s' },
+  f_homgo:     { zh: '追踪导弹发射！', en: 'HOMING LAUNCH!' },
+  f_homout:    { zh: '追踪导弹耗尽', en: 'HOMING DEPLETED' },
+  f_shield:    { zh: '临时护盾 5s！', en: 'SHIELD 5s!' },
+  f_bfull:     { zh: '炸弹已满 +500', en: 'BOMBS FULL +500' },
+  f_fragbomb:  { zh: '碎片集齐 炸弹 +1！', en: 'FRAGS COMPLETE: BOMB +1!' },
+  f_frag:      { zh: '炸弹碎片 {n}/3', en: 'BOMB FRAG {n}/3' },
+  f_bomb:      { zh: '炸弹 +1', en: 'BOMB +1' },
+  f_shbreak:   { zh: '护盾破碎！', en: 'SHIELD DOWN!' },
+  fu_super:    { zh: '超级火神炮', en: 'SUPER VULCAN' },
+  fu_arc:      { zh: '电弧链', en: 'ARC LINK' },
+  fu_ring:     { zh: '全向弹幕', en: 'OMNI BARRAGE' },
+  fu_mix:      { zh: '协力强化 +50%', en: 'SYNERGY +50%' },
+  hud_endless: { zh: '无尽{n}', en: 'ENDLESS {n}' },
+  hud_cont:    { zh: '续命 ×{n}', en: 'CONT ×{n}' },
+  hud_graze:   { zh: '擦弹', en: 'GRAZE' },
+  hud_medal:   { zh: '奖牌', en: 'MEDAL' },
+  pause_title: { zh: '已暂停', en: 'PAUSED' },
+  pause_resume:{ zh: '继续战斗', en: 'RESUME' },
+  pause_back:  { zh: '返回标题菜单', en: 'BACK TO TITLE' },
+  pause_hint:  { zh: '↑↓ 选择 · Enter 确认 · P / Esc 继续', en: '↑↓ SELECT · ENTER CONFIRM · P / ESC RESUME' },
+  title_main:  { zh: '雷霆战机', en: 'THUNDER STRIKE' },
+  title_sub:   { zh: '雷电风格 · 纵版弹幕射击 · 全 4 大关卡', en: 'RAIDEN-STYLE VERTICAL SHMUP · 4 STAGES' },
+  menu_1p:     { zh: '单人游戏', en: '1P GAME' },
+  menu_2p:     { zh: '双人合作', en: '2P CO-OP' },
+  menu_stage:  { zh: '关卡选择', en: 'STAGE SELECT' },
+  menu_diff:   { zh: '难度：{d}', en: 'DIFFICULTY: {d}' },
+  menu_lang:   { zh: '语言：中文', en: 'LANGUAGE: ENGLISH' },
+  menu_settings:{ zh: '设置', en: 'SETTINGS' },
+  menu_scores: { zh: '排行榜', en: 'HI-SCORES' },
+  title_hint:  { zh: '↑↓ 选择 · Enter 确认 · ←→ 切换难度 / 语言 · 1 / 2 快速开始', en: '↑↓ SELECT · ENTER CONFIRM · ←→ DIFFICULTY / LANGUAGE · 1/2 QUICK START' },
+  legend_v:    { zh: 'V 火神炮', en: 'V VULCAN' },
+  legend_l:    { zh: 'L 电浆鞭', en: 'L WHIP' },
+  legend_s:    { zh: 'S 散射炮', en: 'S SCATTER' },
+  legend_h:    { zh: 'H 导弹储能', en: 'H HOMING' },
+  title_foot:  { zh: '4 大关卡 × 关底 Boss · 双人贴身触发合体技 · 通关后无尽挑战', en: '4 STAGES + BOSSES · 2P FUSION · ENDLESS AFTER CLEAR' },
+  ss_title:    { zh: '关卡选择', en: 'STAGE SELECT' },
+  ss_sub:      { zh: 'STAGE SELECT / PRACTICE', en: 'PRACTICE MODE' },
+  ss_locked:   { zh: '— 未解锁（通关上一关解锁）—', en: '— LOCKED (CLEAR THE PREV STAGE) —' },
+  ss_weapon:   { zh: '初始武器：◀ {w} ▶', en: 'START WEAPON: ◀ {w} ▶' },
+  ss_hint:     { zh: '↑↓ 选关 · ←→ 换武器 · Enter 开打（3 命 3 炸弹 LV1） · Esc 返回', en: '↑↓ STAGE · ←→ WEAPON · ENTER START (3 LIVES 3 BOMBS LV1) · ESC BACK' },
+  set_title:   { zh: '设置', en: 'SETTINGS' },
+  set_disp:    { zh: '画面尺寸', en: 'DISPLAY' },
+  set_mus:     { zh: '音乐音量', en: 'MUSIC VOL' },
+  set_sfx:     { zh: '音效音量', en: 'SFX VOL' },
+  set_back:    { zh: '返回标题菜单', en: 'BACK TO TITLE' },
+  set_hint:    { zh: '↑↓ 选择 · ←→ 调整 · Esc 返回（游戏内暂停菜单不提供改尺寸）', en: '↑↓ SELECT · ←→ ADJUST · ESC BACK' },
+  sc_title:    { zh: '最高分榜 TOP 10', en: 'HI-SCORES TOP 10' },
+  sc_hint:     { zh: 'Esc / Enter 返回', en: 'ESC / ENTER BACK' },
+  ne_title:    { zh: '上榜留名', en: 'ENTER YOUR NAME' },
+  ne_hint:     { zh: '↑↓ / W S 换字母 · ←→ / A D 移动光标 · Enter 确认', en: '↑↓/WS LETTER · ←→/AD CURSOR · ENTER CONFIRM' },
+  go_title:    { zh: '游戏结束', en: 'GAME OVER' },
+  go_newrec:   { zh: '新纪录！', en: 'NEW RECORD!' },
+  go_hi:       { zh: '最高分 {n}', en: 'HI-SCORE {n}' },
+  go_cont:     { zh: '按 C 续命（剩余 {n} 次）', en: 'PRESS C TO CONTINUE ({n} LEFT)' },
+  go_restart:  { zh: '按 Enter 重新开始', en: 'PRESS ENTER TO RESTART' },
+  go_restart2: { zh: '按 Enter 或点击重新开始', en: 'PRESS ENTER OR TAP TO RESTART' },
+  stats_gm:    { zh: '擦弹 {g} ・ 最高牌值 ×{m}', en: 'GRAZE {g} · BEST MEDAL ×{m}' },
+  vic_title:   { zh: '通关达成！', en: 'ALL CLEAR!' },
+  vic_stats:   { zh: '击坠 {k} ・ 用时 {t} ・ {d} ・ {p}', en: 'KILLS {k} · TIME {t} · {d} · {p}' },
+  vic_newrec:  { zh: '新纪录诞生！', en: 'NEW RECORD!' },
+  vic_hint:    { zh: 'Enter 返回标题 ・ 按 C 开启无尽挑战', en: 'ENTER TITLE · C ENDLESS MODE' },
+  p_1p:        { zh: '单人', en: '1P' },
+  p_2p:        { zh: '双人', en: '2P' }
+};
+function T(key) { var s = STR[key]; return s ? (s[lang] || s.zh) : key; }
+function Tf(key, map) {
+  var s = T(key);
+  for (var k in map) s = s.split('{' + k + '}').join(map[k]);
+  return s;
+}
+function setLang(l) {
+  lang = l === 'en' ? 'en' : 'zh';
+  try { localStorage.setItem('ts_lang', lang); } catch (e) {}
+  applyLangDom();
+}
+function toggleLang() { setLang(lang === 'zh' ? 'en' : 'zh'); }
+/* 难度 / 武器 / 关卡名的语言感知取值（数据表只存 key，显示时翻译） */
+function diffName() { return T(D().nk); }
+var WEAPON_KEYS = { red: 'w_red', blue: 'w_blue', spr: 'w_spr' };
+function wName(w) { return T(WEAPON_KEYS[w] || 'w_red'); }
+function stageName(c) { return lang === 'en' ? c.en : c.name; }
+function stageTag(c) { return lang === 'en' ? c.tagEn : c.tag; }
+/* 切换语言后同步 Canvas 之外的 DOM 文本（标题 / 状态栏 / 按钮 / 帮助 / aria） */
+function applyLangDom() {
+  try { document.title = T('doc_title'); } catch (e) {}
+  if (ttlMain) ttlMain.textContent = T('h1_main');
+  if (ttlSub) ttlSub.textContent = T('h1_sub');
+  if (lbScore) lbScore.textContent = T('st_score');
+  if (lbHi) lbHi.textContent = T('st_hi');
+  if (lbWave) lbWave.textContent = T('st_wave');
+  if (lbLives) lbLives.textContent = T('st_lives');
+  if (lbBombs) lbBombs.textContent = T('st_bombs');
+  if (lbWeapon) lbWeapon.textContent = T('st_weapon');
+  if (helpEl) helpEl.textContent = T('help');
+  try { cv.setAttribute('aria-label', T('aria')); } catch (e) {}
+  btnSound.textContent = soundOn ? T('sfx_on') : T('sfx_off');
+  btnMusic.textContent = musOn ? T('mus_on') : T('mus_off');
+  setMode(mode); /* 刷新 开始/暂停 按钮文案 */
 }
 
 /* ---------------- audio: sfx ---------------- */
@@ -305,6 +453,14 @@ function sfxShieldBlock() {
 }
 function sfxSnipe() { tone(1500, 180, 0.2, 'sawtooth', 0.16); noiseBurst(0.12, 0.2, 2600); }
 function sfxMineDrop() { tone(340, 260, 0.08, 'sine', 0.1); }
+/* 擦弹"叮"：轻量高音 sine，音量小且 70ms 节流（密集弹幕擦弹不炸耳） */
+var lastGrazeSfx = 0;
+function sfxGraze() {
+  var n = performance.now();
+  if (n - lastGrazeSfx < 70) return;
+  lastGrazeSfx = n;
+  tone(1568, 2093, 0.07, 'sine', 0.07);
+}
 function sfxContinue() {
   if (!AC || !soundOn) return;
   var t0 = AC.currentTime;
@@ -486,10 +642,10 @@ function musXfadeTo(key) {
 /* ---------------- difficulty ---------------- */
 /* 四档难度：影响弹幕速度密度(df)、敌机血量(hp)、续命次数(cont) */
 var DIFFS = [
-  { name: '简单', bullet: 0.78, hp: 0.8,  cont: 5 },
-  { name: '普通', bullet: 1.0,  hp: 1.0,  cont: 3 },
-  { name: '困难', bullet: 1.28, hp: 1.2,  cont: 2 },
-  { name: '地狱', bullet: 1.55, hp: 1.5,  cont: 1 }
+  { nk: 'diff_easy',   bullet: 0.78, hp: 0.8,  cont: 5 },
+  { nk: 'diff_normal', bullet: 1.0,  hp: 1.0,  cont: 3 },
+  { nk: 'diff_hard',   bullet: 1.28, hp: 1.2,  cont: 2 },
+  { nk: 'diff_hell',   bullet: 1.55, hp: 1.5,  cont: 1 }
 ];
 var diffIdx = 1; /* 默认普通 */
 function D() { return DIFFS[diffIdx]; }
@@ -501,21 +657,21 @@ function hpMul() { return D().hp * (1 + 0.25 * endlessLoop); } /* 无尽模式�
    无尽模式循环 4 关主题，每轮提升血量 / 密度 / 弹速。 */
 var STAGE_WAVES = 8, STAGE_COUNT = 4;
 var STAGES = [
-  { key: 'nebula', name: '深空巡航', en: 'DEEP SPACE CRUISE', tag: '突破敌军前线巡航编队',
+  { key: 'nebula', name: '深空巡航', en: 'DEEP SPACE CRUISE', tag: '突破敌军前线巡航编队', tagEn: 'Break through the enemy vanguard patrol',
     bossKind: 0, bossTint: null, bossName: null, bossCores: null, bulletC: null,
     bg: { sky: '#04060f', neb: '40,30,90', nebA: 0.28, star: '255,255,255' },
     echo: { time: 0.29, fb: 0.34, wet: 0.5 } },
-  { key: 'lava', name: '熔岩带', en: 'LAVA BELT', tag: '穿越灼热陨石群，逼近岩浆行星',
+  { key: 'lava', name: '熔岩带', en: 'LAVA BELT', tag: '穿越灼热陨石群，逼近岩浆行星', tagEn: 'Cross the burning asteroid field to the magma planet',
     bossKind: 1, bossTint: 'rgba(255,90,40,0.20)', bossName: 'CRAB MECH·炎',
     bossCores: ['#ffb05a', '#ff8a3a', '#ff5a1a'], bulletC: '#ff9a4a',
     bg: { sky: '#0f0504', neb: '95,26,10', nebA: 0.32, star: '255,214,170', rocks: true, lava: true },
     echo: { time: 0.24, fb: 0.3, wet: 0.42 } },
-  { key: 'ruins', name: '翡翠遗迹', en: 'EMERALD RUINS', tag: '沉没于星海的远古环状遗迹',
+  { key: 'ruins', name: '翡翠遗迹', en: 'EMERALD RUINS', tag: '沉没于星海的远古环状遗迹', tagEn: 'Ancient ring ruins sunk beneath the star sea',
     bossKind: 2, bossTint: 'rgba(60,255,190,0.18)', bossName: 'MOTHERSHIP·翡',
     bossCores: ['#5affc0', '#3ae8a0', '#1ac880'], bulletC: '#5affc0',
     bg: { sky: '#031008', neb: '10,70,50', nebA: 0.3, star: '190,255,220', rings: true },
     echo: { time: 0.38, fb: 0.46, wet: 0.62 } },
-  { key: 'void', name: '虚空核心', en: 'VOID CORE', tag: '直捣敌母舰所在的虚空核心',
+  { key: 'void', name: '虚空核心', en: 'VOID CORE', tag: '直捣敌母舰所在的虚空核心', tagEn: 'Strike the void core where the mothership waits',
     bossKind: 2, bossVariant: true, bossTint: 'rgba(150,70,255,0.24)', bossName: 'VOID CORE',
     bossCores: ['#d09aff', '#b06aff', '#8a3aff'], bulletC: '#c07aff',
     bg: { sky: '#070310', neb: '45,15,75', nebA: 0.3, star: '210,190,255', warp: true, mothership: true },
@@ -615,15 +771,17 @@ var fusionOn = false, fusionT = 0, fusionFireT = 0; /* 双人合体状态 */
 var warnFxT = 0;                 /* Boss 登场 WARNING 全屏演出剩余时间 */
 var stageClearPending = false;   /* 关底 Boss 已击破，等待过关场 / 通关结算 */
 var intermNext = 2, intermT = 0; /* 关间过场：目标关卡与计时 */
-var MENU_N = 6;                  /* 主菜单项数：单人/双人/关卡选择/难度/设置/排行榜 */
+var MENU_N = 7;                  /* 主菜单项数：单人/双人/关卡选择/难度/语言/设置/排行榜 */
 var neLetters = [0, 0, 0], nePos = 0, neAfter = 'gameover'; /* 街机留名状态 */
+var grazeCount = 0;              /* 本局擦弹总数 */
+var medalVal = 10, medalBest = 10; /* 奖牌连锁：当前牌值（10→100 递增）/ 本局最高牌值 */
 try { hi = parseInt(localStorage.getItem('thunder-strike-hi') || '0', 10) || 0; } catch (e) {}
 var bullets = [], ebullets = [], enemies = [], items = [], parts = [], floats = [], missiles = [], mines = [];
 var events = [];
 var banner = { text: '', t: 0 };
 var players = [];
-/* 常驻武器只有红/蓝/金三种；追踪导弹 'hom' 已改为限时副火力（H 道具），不再是常驻武器 */
-var WEAPON_NAMES = { red: '火神炮', blue: '电浆鞭', spr: '散射炮' };
+/* 常驻武器只有红/蓝/金三种；追踪导弹 'hom' 已改为限时副火力（H 道具），不再是常驻武器。
+   武器显示名走 WEAPON_KEYS + wName()（见 i18n 段），不再硬编码中文。 */
 
 function df() {
   var base = 1 + 0.07 * (wave - 1);
@@ -634,7 +792,7 @@ function mkPlayer(id) {
   return {
     id: id, x: W / 2, y: H - 84, r: 10, alive: true, inv: 0,
     weapon: 'red', lvl: 1, fireT: 0, lives: 3, bombs: 3,
-    homT: 0, homFireT: 0,       /* 追踪导弹限时副火力：剩余秒数与发射计时 */
+    homT: 0, homActive: false, homFireT: 0, /* 追踪导弹副火力：储存秒数 / 是否激活发射中 / 发射计时 */
     shieldT: 0, frags: 0,       /* 临时护盾剩余秒数 / 炸弹碎片计数（集齐 3 个兑换 1 炸弹） */
     whip: { nodes: null, locked: null }, bank: 0
   };
@@ -727,13 +885,14 @@ function menuActivate() {
   else if (menuIdx === 1) startGame(2);
   else if (menuIdx === 2) { stageSel = clamp(stageSel, 1, unlocked); setMode('stageselect'); sfxItem(); }
   else if (menuIdx === 3) { diffIdx = (diffIdx + 1) % DIFFS.length; sfxItem(); }
-  else if (menuIdx === 4) { setIdx = 0; setMode('settings'); sfxItem(); }
+  else if (menuIdx === 4) { toggleLang(); sfxItem(); }
+  else if (menuIdx === 5) { setIdx = 0; setMode('settings'); sfxItem(); }
   else { setMode('scores'); sfxItem(); }
 }
 function menuClickAt(gx, gy) {
   for (var i = 0; i < MENU_N; i++) {
-    var y = H * 0.38 + i * 40;
-    if (Math.abs(gy - y) < 20 && Math.abs(gx - W / 2) < 160) {
+    var y = H * 0.36 + i * 36;
+    if (Math.abs(gy - y) < 18 && Math.abs(gx - W / 2) < 170) {
       menuIdx = i;
       menuActivate();
       return true;
@@ -776,7 +935,7 @@ function pauseClickAt(gx, gy) {
 }
 /* Game Over 点击：命中续命区且还有次数则续命，否则重新开始 */
 function gameoverClickAt(gy) {
-  if (continuesLeft > 0 && gy > H * 0.4 + 82 && gy < H * 0.4 + 116) { continueGame(); return; }
+  if (continuesLeft > 0 && gy > H * 0.4 + 100 && gy < H * 0.4 + 136) { continueGame(); return; }
   startGame(numPlayers);
 }
 window.addEventListener('keydown', function (e) {
@@ -787,6 +946,7 @@ window.addEventListener('keydown', function (e) {
     if (k === 'ArrowUp') menuIdx = (menuIdx + MENU_N - 1) % MENU_N;
     else if (k === 'ArrowDown') menuIdx = (menuIdx + 1) % MENU_N;
     else if ((k === 'ArrowLeft' || k === 'ArrowRight') && menuIdx === 3) { diffIdx = (diffIdx + (k === 'ArrowLeft' ? DIFFS.length - 1 : 1)) % DIFFS.length; }
+    else if ((k === 'ArrowLeft' || k === 'ArrowRight') && menuIdx === 4) { toggleLang(); sfxItem(); } /* 语言项 ←→ 即时切换中英 */
     else if (k === 'Enter') { if (!e.repeat) menuActivate(); } /* 屏蔽连发：防止上一界面长按回车连锁开局 */
     else if (k === '1') { ensureAudio(); startGame(1); }
     else if (k === '2') { ensureAudio(); startGame(2); }
@@ -856,6 +1016,9 @@ window.addEventListener('keydown', function (e) {
   if (mode === 'playing') {
     if (k === 'x' || k === 'X' || k === 'b' || k === 'B' || k === ' ' || k === 'q' || k === 'Q') useBomb(players[0]);
     if (k === 'Enter' && numPlayers === 2) useBomb(players[1]);
+    /* 追踪导弹手动释放：1P 左 Shift，2P 右 Shift（用 e.code 区分左右） */
+    if (!e.repeat && e.code === 'ShiftLeft') releaseHoming(players[0]);
+    if (!e.repeat && e.code === 'ShiftRight' && numPlayers === 2) releaseHoming(players[1]);
   }
 });
 window.addEventListener('keyup', function (e) {
@@ -1019,7 +1182,7 @@ function startWave(n) {
     /* 每关第 1 波：打出关卡名横幅 */
     waveBanner('STAGE ' + stage);
     var conf0 = stageConf();
-    floats.push({ x: W / 2, y: H * 0.38 + 36, text: conf0.name + ' · ' + conf0.en, t: 2.2 });
+    floats.push({ x: W / 2, y: H * 0.38 + 36, text: lang === 'en' ? conf0.en : conf0.name + ' · ' + conf0.en, t: 2.2 });
   } else {
     waveBanner('WAVE ' + stageWave);
   }
@@ -1106,7 +1269,8 @@ function fireSuperVulcan() {
   sfxShoot();
 }
 
-/* --- 追踪导弹：限时副火力（捡 H 获得 18s，与主武器并行开火，不占武器槽） --- */
+/* --- 追踪导弹：储能制副火力（捡 H 储存 +10s、上限 30s，按 Shift 手动释放；
+   激活后与主武器并行开火直至储存耗尽，不占武器槽） --- */
 var HOM_COUNT = [1, 2, 2, 3, 4];
 function fireHoming(p) {
   var n = HOM_COUNT[p.lvl - 1];
@@ -1117,6 +1281,15 @@ function fireHoming(p) {
       t: 0, life: 3.4, dmg: 8 * dmgMul(), blast: 50
     });
   }
+  sfxMissile();
+}
+/* 手动释放追踪导弹：1P 左 Shift / 2P 右 Shift 激活；激活后按 0.32s/发持续发射，
+   储存时间实时扣减，耗尽自动停止；激活中捡 H 可继续补充（上限 30s） */
+function releaseHoming(p) {
+  if (!p || !p.alive || mode !== 'playing' || p.homActive || p.homT <= 0) return;
+  p.homActive = true;
+  p.homFireT = 0;
+  floats.push({ x: p.x, y: p.y - 26, text: T('f_homgo'), t: 1 });
   sfxMissile();
 }
 
@@ -1195,19 +1368,21 @@ function updateMissiles(dt) {
   }
 }
 
-/* --- 电浆鞭（Raiden 风格，每玩家一条）：Verlet 绳物理 ---
-   节点存 x,y,px,py；鞭根（0 号）每帧钉在机头，其余节点 verlet 积分（带阻尼）
-   + 3 轮距离约束迭代（相邻节点固定节距 segLen）。玩家移动时机头拖拽绳体，
-   产生自然的滞后 / 甩尾弧线——这是"鞭子感"的来源。
-   导向加速度按 (节点序号/绳长)^3 向鞭梢集中（鞭根几乎不受力），
-   绳体逐渐弯成弧线扑向目标而非瞬间拉直；锁定本身不产生任何伤害，
-   伤害只发生在鞭梢 / 鞭身与敌人实际接触时。 */
-var WHIP_N = 16;
-function whipLen(p) { return 210 + 26 * p.lvl; } /* 绳总长 L */
+/* --- 电浆鞭 v3（Raiden 风格，每玩家一条）：运动学定向束带（directed ribbon）---
+   v1 直线拖拽太硬、v2 Verlet 自由绳太乱——雷电2 的鞭子是"受控定向束带"：
+   鞭子 = 机头锚点到目标点（锁定敌人；无锁定 = 正上方 L 处）的一条平滑参数曲线：
+     基准线 + 法向正弦扰动（振幅向鞭梢渐增，相位随时间滚动成流动的 S 形扭动）
+   目标点与侧向弯曲量分别用临界阻尼弹簧（ζ=1，无超调无震荡）跟随：
+   玩家高速移动时鞭身像缎带一样柔顺甩尾，但始终连贯、指向明确，绝不杂乱。
+   沿曲线取 WHIP_N 个采样点，绘制与伤害判定共用同一组点（所见即所判）；
+   保留 v2 的正确部分：纯接触伤害（鞭梢全 dps、鞭身 0.35 倍、伤害源取接触点）、
+   锁定范围限制与护盾兵侧背判定兼容。 */
+var WHIP_N = 14;
+function whipLen(p) { return 210 + 26 * p.lvl; } /* 束带总长 L */
 function whipResetAll() {
   for (var i = 0; i < players.length; i++) { players[i].whip.nodes = null; players[i].whip.locked = null; }
 }
-/* 索敌：只锁定鞭子物理可达的敌人——与玩家距离 ≤ L+40 且横向 |dx| ≤ 150 */
+/* 索敌：只锁定鞭子可达的敌人——与玩家距离 ≤ L+40 且横向 |dx| ≤ 150 */
 function acquireLock(p) {
   var L = whipLen(p);
   var best = null, bd = 1e12;
@@ -1225,16 +1400,20 @@ function acquireLock(p) {
 function updateWhip(p, dt) {
   var wp = p.whip;
   var L = whipLen(p);
-  var segLen = L / (WHIP_N - 1);
   var ax = p.x, ay = p.y - 16; /* 机头锚点 */
   var i;
+  if (dt > 0.05) dt = 0.05;
   if (!wp.nodes) {
-    /* 初始绳：自机头竖直向上展开，当前/上一帧位置一致（静止起步） */
+    /* 初始束带：自机头竖直向上展开；弹簧状态从静止目标点起步，避免首帧猛甩 */
     wp.nodes = [];
     for (i = 0; i < WHIP_N; i++) {
-      var iy = ay - segLen * i;
+      var iy = ay - L * i / (WHIP_N - 1);
       wp.nodes.push({ x: ax, y: iy, px: ax, py: iy });
     }
+    wp.tx = ax; wp.ty = ay - L; wp.tvx = 0; wp.tvy = 0; /* 目标点弹簧 */
+    wp.bend = 0; wp.bv = 0;                              /* 侧向弯曲弹簧 */
+    wp.ppx = p.x; wp.ppy = p.y;                          /* 上一帧玩家位置（估速度用） */
+    wp.phase = 0;                                        /* 扭动相位 */
   }
   /* 锁定磁滞：已锁目标除非死亡 / 出屏 / 超出 L+70 才脱锁，避免边界抖动切换 */
   if (wp.locked) {
@@ -1244,57 +1423,72 @@ function updateWhip(p, dt) {
   }
   if (!wp.locked) wp.locked = acquireLock(p);
 
-  /* 1) verlet 积分：惯性 + 阻尼 + 轻微下坠（给绳一点重量感，闲置时自然摆动） */
-  var damp = Math.max(0, 1 - 2.4 * dt);
-  var dt2 = dt * dt;
-  for (i = 1; i < WHIP_N; i++) {
-    var n = wp.nodes[i];
-    var vx = (n.x - n.px) * damp;
-    var vy = (n.y - n.py) * damp;
-    n.px = n.x; n.py = n.y;
-    n.x += vx;
-    n.y += vy + 20 * dt2;
-  }
-  /* 2) 导向：转向加速度按 (节点序号/绳长)^3 向鞭梢集中——鞭根几乎不受力、
-     保持自由甩动，鞭梢被明显牵引向锁定目标，绳体逐渐弯成弧线而不是被瞬间
-     拉直（实测：纯鞭梢单点导向在距离约束下弯折无法沿绳上传，鞭梢会停在
-     目标外 ~37px 的平衡点；立方衰减是保持"鞭梢导向"手感的最小扩散）。
-     无锁定时鞭梢轻微上探，随玩家移动自然摆动 */
-  var tip = wp.nodes[WHIP_N - 1];
-  var gx, gy, steer;
-  if (wp.locked && !wp.locked.dead) { gx = wp.locked.x; gy = wp.locked.y; steer = 2400; }
-  else { gx = p.x; gy = ay - L * 0.8; steer = 670; }
-  for (i = 1; i < WHIP_N; i++) {
-    var wf = Math.pow(i / (WHIP_N - 1), 3);
-    if (wf < 0.02) continue;
-    var wn = wp.nodes[i];
-    var sdx = gx - wn.x, sdy = gy - wn.y;
-    var sd = Math.sqrt(sdx * sdx + sdy * sdy);
-    if (sd > 1) {
-      var acc = Math.min(steer * wf, sd * 6); /* 接近目标时收力，防止绕目标振荡 */
-      wn.x += sdx / sd * acc * dt2;
-      wn.y += sdy / sd * acc * dt2;
-    }
-  }
-  /* 3) 距离约束迭代（3 轮）：相邻节点保持 segLen 节距；鞭根每轮重新钉回机头，
-     且父节视为已定位、修正量全给子节——从鞭根向鞭梢单轮即可把绳长收敛，
-     玩家高速移动时绳体被拖拽出甩尾弧线但不会被拉长/压缩 */
-  var n0 = wp.nodes[0];
-  for (var iter = 0; iter < 3; iter++) {
-    n0.x = ax; n0.y = ay;
-    for (i = 0; i < WHIP_N - 1; i++) {
-      var na = wp.nodes[i], nb = wp.nodes[i + 1];
-      var ddx = nb.x - na.x, ddy = nb.y - na.y;
-      var dd = Math.sqrt(ddx * ddx + ddy * ddy) || 1e-6;
-      var corr = (dd - segLen) / dd;
-      nb.x -= ddx * corr; nb.y -= ddy * corr;
-    }
-  }
-  n0.x = ax; n0.y = ay; n0.px = ax; n0.py = ay; /* 钉死鞭根并清零其速度，杜绝漂移 */
+  /* 1) 原始目标点：锁定敌人；否则机头正上方 L 处（待机竖直微摆）。
+     弦长钳制在 L 以内：锁定范围（L+40）边缘的敌人束带拉直也够不着，
+     靠近后才真正缠上——长度有限符合直觉 */
+  var gx, gy;
+  if (wp.locked && !wp.locked.dead) { gx = wp.locked.x; gy = wp.locked.y; }
+  else { gx = ax; gy = ay - L; }
+  var gdx = gx - ax, gdy = gy - ay;
+  var gd = Math.sqrt(gdx * gdx + gdy * gdy);
+  if (gd > L) { gx = ax + gdx / gd * L; gy = ay + gdy / gd * L; }
 
-  /* 4) 纯接触伤害：锁定只负责引导鞭梢，不再隔空掉血。
-     鞭梢接触全 dps，鞭身擦碰 0.35 倍；伤害源取实际接触节点位置，
+  /* 2) 弹簧子步推进（临界阻尼）：目标点滞后跟随形成缎带式甩尾；
+     侧向弯曲 = 玩家速度在基准线法向上的投影（高速横移把鞭身"吹"向反侧） */
+  var rdt = Math.max(dt, 1e-3);
+  var pvx = (p.x - wp.ppx) / rdt, pvy = (p.y - wp.ppy) / rdt;
+  wp.ppx = p.x; wp.ppy = p.y;
+  var tdx0 = wp.tx - ax, tdy0 = wp.ty - ay;
+  var chord0 = Math.sqrt(tdx0 * tdx0 + tdy0 * tdy0) || 1e-6;
+  var nx0 = -tdy0 / chord0, ny0 = tdx0 / chord0; /* 基准线法线 */
+  var bendTgt = clamp(-(pvx * nx0 + pvy * ny0) * 0.05, -14, 14);
+  var steps = Math.max(1, Math.ceil(dt / (1 / 60)));
+  var h = dt / steps;
+  for (var s = 0; s < steps; s++) {
+    var acc;
+    acc = -144 * (wp.tx - gx) - 24 * wp.tvx; wp.tvx += acc * h; wp.tx += wp.tvx * h;       /* omega=12 */
+    acc = -144 * (wp.ty - gy) - 24 * wp.tvy; wp.tvy += acc * h; wp.ty += wp.tvy * h;
+    acc = -64 * (wp.bend - bendTgt) - 16 * wp.bv; wp.bv += acc * h; wp.bend += wp.bv * h; /* omega=8 */
+  }
+  /* 弦长硬钳制：锚点高速移动时弹簧滞后可能把平滑目标点甩到 L 之外，
+     钳回 L 并消去径向外向速度——束带长度有限，拉直也够不着 L 以外的敌人 */
+  var cdx = wp.tx - ax, cdy = wp.ty - ay;
+  var cd = Math.sqrt(cdx * cdx + cdy * cdy);
+  if (cd > L) {
+    wp.tx = ax + cdx / cd * L; wp.ty = ay + cdy / cd * L;
+    var rv = (wp.tvx * cdx + wp.tvy * cdy) / cd;
+    if (rv > 0) { wp.tvx -= rv * cdx / cd; wp.tvy -= rv * cdy / cd; }
+  }
+
+  /* 3) 生成曲线并采样：基准线（锚点→平滑目标点）+ 法向正弦扰动。
+     振幅包络 u^1.25：根部为 0、向鞭梢渐增；扰动幅度随张紧度收敛
+     （弦长接近 L 时束带近乎绷直），最大偏移克制在 ~18px */
+  wp.phase += dt * 6.4;
+  var dx = wp.tx - ax, dy = wp.ty - ay;
+  var chord = Math.sqrt(dx * dx + dy * dy) || 1e-6;
+  var dirx = dx / chord, diry = dy / chord;
+  var nx = -diry, ny = dirx;
+  var taut = clamp(1.45 - chord / L, 0.22, 1);
+  var maxAmp = Math.min(18, Math.max(5, chord * 0.3)) * taut;
+  var segLen = chord / (WHIP_N - 1);
+  for (i = 0; i < WHIP_N; i++) {
+    var u = i / (WHIP_N - 1);
+    var env = Math.pow(u, 1.25);
+    var perp = maxAmp * env * (0.78 * Math.sin(wp.phase + u * 4.6) + 0.22 * Math.sin(wp.phase * 1.63 + u * 8.7))
+             + wp.bend * env;
+    perp = clamp(perp, -20, 20);
+    var n = wp.nodes[i];
+    n.px = n.x; n.py = n.y;
+    n.x = ax + dirx * segLen * i + nx * perp;
+    n.y = ay + diry * segLen * i + ny * perp;
+  }
+  var n0 = wp.nodes[0];
+  n0.x = ax; n0.y = ay; /* 鞭根钉死机头：绘制与判定共用采样点，起笔必须精确在锚点 */
+
+  /* 4) 纯接触伤害（同 v2）：锁定只负责引导束带，不隔空掉血。
+     鞭梢接触全 dps，鞭身擦碰 0.35 倍；伤害源取实际接触采样点位置，
      鞭身绕到护盾兵侧后方时可正确打出双倍伤害 */
+  var tip = wp.nodes[WHIP_N - 1];
   var dps = (26 + 24 * p.lvl) * dmgMul();
   for (var j = 0; j < enemies.length; j++) {
     var e = enemies[j];
@@ -1325,29 +1519,25 @@ function drawWhip(p) {
   var tint = p.id === 0 ? '150,90,255' : '255,120,200';
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
-  function pathThrough(offset) {
+  /* 绘制路径严格穿过判定采样点（所见即所判），不再叠加额外抖动 */
+  function pathThrough() {
     ctx.beginPath();
-    /* 修复：绘制路径也从机头锚点起笔，与硬钉的物理鞭根保持一致 */
-    ctx.moveTo(p.x, p.y - 16);
-    for (var i = 1; i < WHIP_N; i++) {
-      var n = wp.nodes[i];
-      var off = Math.sin(tt + i * 1.7) * (1.2 + p.lvl * 0.5) * (i / WHIP_N) * offset;
-      ctx.lineTo(n.x + off, n.y);
-    }
+    ctx.moveTo(wp.nodes[0].x, wp.nodes[0].y);
+    for (var i = 1; i < WHIP_N; i++) ctx.lineTo(wp.nodes[i].x, wp.nodes[i].y);
   }
-  ctx.strokeStyle = 'rgba(' + tint + ',0.4)';
-  ctx.lineWidth = wGlow;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  pathThrough(1);
+  ctx.strokeStyle = 'rgba(' + tint + ',0.4)';
+  ctx.lineWidth = wGlow;
+  pathThrough();
   ctx.stroke();
   ctx.strokeStyle = 'rgba(' + tint + ',0.7)';
   ctx.lineWidth = wCore + 2;
-  pathThrough(-1);
+  pathThrough();
   ctx.stroke();
   ctx.strokeStyle = 'rgba(245,240,255,0.95)';
   ctx.lineWidth = wCore;
-  pathThrough(0);
+  pathThrough();
   ctx.stroke();
   /* 鞭梢能量亮点：随速度增亮，强调实际接触点 */
   var tipN = wp.nodes[WHIP_N - 1];
@@ -1477,7 +1667,7 @@ function shieldBreak(e) {
   flash = Math.max(flash, 0.18);
   shakeT = Math.max(shakeT, 0.25);
   sfxShieldBreak();
-  floats.push({ x: e.x, y: e.y - e.r - 8, text: '护盾破碎！', t: 0.9 });
+  floats.push({ x: e.x, y: e.y - e.r - 8, text: T('f_shbreak'), t: 0.9 });
 }
 function killEnemy(e) {
   score += e.score;
@@ -1497,6 +1687,9 @@ function killEnemy(e) {
   /* 精英/大型敌人约 15% 掉限时导弹 H（另有每 8 波保底） */
   var elite = e.type === 'gunboat' || e.type === 'sniper' || e.type === 'shielder' || e.type === 'minelayer';
   if (elite && Math.random() < 0.15) dropKind(e.x, e.y, 'H');
+  /* 奖牌连锁：击毁必掉连锁奖牌（不占掉落池权重）；小型神风机 50% 概率掉，控制密度 */
+  if (e.type === 'kamikaze') { if (Math.random() < 0.5) dropKind(e.x, e.y, 'G'); }
+  else dropKind(e.x + rand(-6, 6), e.y, 'G');
   /* 稀有掉落：临时护盾 / 炸弹碎片，各约 2.5%，仅击毁敌人时掉落 */
   if (e.type !== 'boss') {
     var rr = Math.random();
@@ -1519,7 +1712,7 @@ function bossDown(e) {
   shakeT = Math.max(shakeT, 0.7);
   stageClearPending = true; /* 关底 Boss 击破：非最终关 -> 关间过场，最终关 -> 通关结算 */
 }
-function dropKind(x, y, kind) { items.push({ x: clamp(x, 20, W - 20), y: y, vy: 58, kind: kind, t: 0 }); }
+function dropKind(x, y, kind) { items.push({ x: clamp(x, 20, W - 20), y: y, vy: kind === 'G' ? 38 : 58, kind: kind, t: 0 }); }
 /* 运输船道具池：三种常驻武器 V/L/S（红/蓝/金）权重大致相等；
    H 不再走常驻池，改由精英敌人 15% 概率与每 8 波保底掉落 */
 function dropItem(x, y) {
@@ -1540,37 +1733,54 @@ function collectItem(p, it) {
     if (p.lvl < 5) { p.lvl++; floats.push({ x: fx, y: fy, text: 'POWER UP!', t: 1.2 }); }
     else { score += 1000; floats.push({ x: fx, y: fy, text: '+1000', t: 1 }); }
   } else if (it.kind === 'V' || it.kind === 'L' || it.kind === 'S') {
-    /* 常驻武器：切换或升级，战机头顶弹出「武器名 LVx！」浮动文字 */
+    /* 常驻武器：切换或升级，战机头顶弹出「武器名 LVx!」浮动文字 */
     var wKey = it.kind === 'V' ? 'red' : it.kind === 'L' ? 'blue' : 'spr';
     if (p.weapon === wKey) {
-      if (p.lvl < 5) { p.lvl++; floats.push({ x: fx, y: fy, text: WEAPON_NAMES[wKey] + ' LV' + p.lvl + '！', t: 1.2 }); }
+      if (p.lvl < 5) { p.lvl++; floats.push({ x: fx, y: fy, text: Tf('f_wlvl', { w: wName(wKey), n: p.lvl }), t: 1.2 }); }
       else { score += 1000; floats.push({ x: fx, y: fy, text: '+1000', t: 1 }); }
     } else {
       p.weapon = wKey;
       if (wKey === 'blue') { p.whip.nodes = null; p.whip.locked = null; }
-      floats.push({ x: fx, y: fy, text: WEAPON_NAMES[wKey] + ' LV' + p.lvl + '！', t: 1.2 });
+      floats.push({ x: fx, y: fy, text: Tf('f_wlvl', { w: wName(wKey), n: p.lvl }), t: 1.2 });
     }
   } else if (it.kind === 'H') {
-    /* 限时追踪导弹副火力：+18s，生效期间再捡续时，上限 30s，不替换主武器 */
-    p.homT = Math.min(30, p.homT + 18);
-    floats.push({ x: fx, y: fy, text: '追踪导弹 +18s', t: 1.2 });
+    /* 追踪导弹储能：+10s 储存（上限 30s），按 Shift 手动释放；激活中再捡继续补充 */
+    p.homT = Math.min(30, p.homT + 10);
+    floats.push({ x: fx, y: fy, text: T('f_hom10'), t: 1.2 });
   } else if (it.kind === 'D') {
     /* 临时护盾：5 秒抵挡所有伤害 */
     p.shieldT = 5;
-    floats.push({ x: fx, y: fy, text: '临时护盾 5s！', t: 1.2 });
+    floats.push({ x: fx, y: fy, text: T('f_shield'), t: 1.2 });
+  } else if (it.kind === 'G') {
+    /* 奖牌连锁：连续收集分值 10→20→…→100 递增封顶；受伤（掉命）重置为 10 */
+    score += medalVal;
+    floats.push({ x: fx, y: fy, text: '+' + medalVal, t: 1 });
+    if (medalVal > medalBest) medalBest = medalVal;
+    if (medalVal < 100) medalVal += 10;
   } else if (it.kind === 'F') {
-    /* 炸弹碎片：集齐 3 个自动兑换 +1 炸弹 */
+    /* 炸弹碎片：集齐 3 个自动兑换 +1 炸弹（炸弹满 4 时兑换转为分数奖励） */
     p.frags++;
     if (p.frags >= 3) {
       p.frags = 0;
-      p.bombs = Math.min(6, p.bombs + 1);
-      floats.push({ x: fx, y: fy, text: '碎片集齐 炸弹 +1！', t: 1.2 });
+      if (p.bombs >= 4) {
+        score += 500;
+        floats.push({ x: fx, y: fy, text: T('f_bfull'), t: 1.2 });
+      } else {
+        p.bombs++;
+        floats.push({ x: fx, y: fy, text: T('f_fragbomb'), t: 1.2 });
+      }
     } else {
-      floats.push({ x: fx, y: fy, text: '炸弹碎片 ' + p.frags + '/3', t: 1.2 });
+      floats.push({ x: fx, y: fy, text: Tf('f_frag', { n: p.frags }), t: 1.2 });
     }
   } else if (it.kind === 'B') {
-    p.bombs = Math.min(6, p.bombs + 1);
-    floats.push({ x: fx, y: fy, text: '炸弹 +1', t: 1.2 });
+    /* 炸弹库存上限 4：满员时转为分数奖励 */
+    if (p.bombs >= 4) {
+      score += 500;
+      floats.push({ x: fx, y: fy, text: T('f_bfull'), t: 1.2 });
+    } else {
+      p.bombs++;
+      floats.push({ x: fx, y: fy, text: T('f_bomb'), t: 1.2 });
+    }
   } else {
     score += 500;
     floats.push({ x: fx, y: fy, text: '+500', t: 1 });
@@ -1590,6 +1800,7 @@ function playerHit(p) {
   shakeT = Math.max(shakeT, 0.55);
   p.lives--;
   p.lvl = Math.max(1, p.lvl - 1);
+  medalVal = 10; /* 受伤（掉命）：奖牌连锁重置为 10 */
   var anyAlive = false;
   if (p.lives <= 0) {
     p.lives = 0;
@@ -1780,9 +1991,9 @@ function updateBoss(e, dt) {
 /* ---------------- flow ---------------- */
 function setMode(m) {
   mode = m;
-  btnStart.textContent = (m === 'title') ? '开始游戏' : '重新开始';
+  btnStart.textContent = (m === 'title') ? T('btn_start') : T('btn_restart');
   btnPause.disabled = !(m === 'playing' || m === 'paused');
-  btnPause.textContent = m === 'paused' ? '继续' : '暂停';
+  btnPause.textContent = m === 'paused' ? T('btn_resume') : T('btn_pause');
 }
 /* n: 玩家人数；fromStage/fromWave: 起始关与起始波（关卡选择 / 调试钩子），缺省第 1 关第 1 波 */
 function startGame(n, fromStage, fromWave) {
@@ -1803,6 +2014,7 @@ function startGame(n, fromStage, fromWave) {
   gameT = 0; kills = 0; victoryPending = false; stageClearPending = false;
   continuesLeft = D().cont;
   comboCount = 0; comboT = 0;
+  grazeCount = 0; medalVal = 10; medalBest = 10; /* 擦弹 / 奖牌连锁按局重置 */
   slowmoT = 0; bombBlast = null;
   fusionOn = false; fusionT = 0; fusionFireT = 0;
   banner.text = ''; banner.t = 0;
@@ -1842,14 +2054,14 @@ btnSound.addEventListener('click', function () {
   ensureAudio();
   soundOn = !soundOn;
   if (master) master.gain.value = soundOn ? sfxVolG() : 0;
-  btnSound.textContent = soundOn ? '音效：开' : '音效：关';
+  btnSound.textContent = soundOn ? T('sfx_on') : T('sfx_off');
   btnSound.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
 });
 btnMusic.addEventListener('click', function () {
   ensureAudio();
   musOn = !musOn;
   if (musicGain) musicGain.gain.value = musOn ? musVolG() : 0;
-  btnMusic.textContent = musOn ? '音乐：开' : '音乐：关';
+  btnMusic.textContent = musOn ? T('mus_on') : T('mus_off');
   btnMusic.setAttribute('aria-pressed', musOn ? 'true' : 'false');
 });
 
@@ -2017,14 +2229,16 @@ function updatePlaying(dt) {
     } else if (p.weapon === 'spr') {
       if (p.fireT <= 0) { fireSpr(p); p.fireT = 0.24 * rateMul(); }
     }
-    /* 限时追踪导弹副火力：与主武器并行开火，时间到自动消失 */
-    if (p.homT > 0) {
+    /* 追踪导弹副火力：仅激活（按 Shift 释放）时发射并实时扣减储存，耗尽自动停止；
+       未激活时储存冻结保留，死亡/暂停期间同样冻结，换武器不受影响 */
+    if (p.homActive) {
       p.homT -= dt;
       p.homFireT -= dt;
       if (p.homFireT <= 0) { fireHoming(p); p.homFireT = 0.32; }
       if (p.homT <= 0) {
         p.homT = 0;
-        floats.push({ x: p.x, y: p.y - 26, text: '追踪导弹结束', t: 0.9 });
+        p.homActive = false;
+        floats.push({ x: p.x, y: p.y - 26, text: T('f_homout'), t: 0.9 });
       }
     }
   }
@@ -2198,12 +2412,28 @@ function updatePlaying(dt) {
     if (eb.y < -16 || eb.y > H + 16 || eb.x < -16 || eb.x > W + 16) { ebullets.splice(i, 1); continue; }
     for (pi = 0; pi < players.length; pi++) {
       var pp = players[pi];
-      if (!pp.alive || pp.inv > 0) continue;
+      if (!pp.alive) continue;
       var pdx = eb.x - pp.x, pdy = eb.y - pp.y, prr = pp.r - 2 + eb.r;
-      if (pdx * pdx + pdy * pdy < prr * prr) {
+      var pd2 = pdx * pdx + pdy * pdy;
+      if (pp.inv <= 0 && pd2 < prr * prr) {
         ebullets.splice(i, 1);
         playerHit(pp);
         break;
+      }
+      /* 擦弹：子弹进入玩家 ~18px 内但未命中判定半径，每颗弹只计一次（打标记去重）；
+         奖励 = 10 分 × 当前奖牌倍率（奖牌倍率 = 牌值/10，即 1~10 倍） */
+      if (!eb.grazed) {
+        var grr = prr + 18;
+        if (pd2 < grr * grr) {
+          eb.grazed = true;
+          grazeCount++;
+          score += 10 * (medalVal / 10);
+          if (score > hi) hi = score;
+          for (var gs = 0; gs < 4; gs++) {
+            parts.push({ x: pp.x + rand(-11, 11), y: pp.y + rand(-13, 3), vx: rand(-46, 46), vy: rand(-80, -12), life: 0.22, max: 0.22, size: 1.5, c: '#6af0ff' });
+          }
+          sfxGraze();
+        }
       }
     }
   }
@@ -2335,23 +2565,31 @@ function drawPlayer(p) {
   }
   ctx.restore();
 }
-/* 玩家附加视觉：限时导弹倒计时圆弧 + 临时护盾泡泡 */
+/* 玩家附加视觉：追踪导弹储能指示 + 临时护盾泡泡 */
 function drawPlayerExtras(p) {
   if (!p.alive || mode !== 'playing') return;
   var now = performance.now();
-  /* 限时追踪导弹：头顶倒计时圆弧（上限 30s），最后 3 秒闪烁 */
-  if (p.homT > 0 && (p.homT > 3 || Math.floor(now / 120) % 2 === 0)) {
+  /* 追踪导弹储能：有储存时头顶显示圆弧余量 + 秒数；
+     激活中变亮并闪动，未激活时常亮暗绿提示可按 Shift 释放 */
+  if (p.homT > 0) {
+    var act = p.homActive;
+    var flash = act && Math.floor(now / 140) % 2 === 0;
     var frac = clamp(p.homT / 30, 0, 1);
-    ctx.strokeStyle = 'rgba(122,223,90,0.25)';
+    ctx.strokeStyle = act ? 'rgba(150,255,110,0.55)' : 'rgba(122,223,90,0.25)';
     ctx.lineWidth = 3;
     ctx.beginPath(); ctx.arc(p.x, p.y - 26, 13, 0, TAU); ctx.stroke();
-    ctx.strokeStyle = p.homT <= 3 ? '#ffe24a' : '#7adf5a';
+    ctx.strokeStyle = act ? (flash ? '#eaffc8' : '#7adf5a') : '#5fae4e';
     ctx.beginPath(); ctx.arc(p.x, p.y - 26, 13, -Math.PI / 2, -Math.PI / 2 + frac * TAU); ctx.stroke();
     /* 小导弹图标 */
-    ctx.fillStyle = '#7adf5a';
+    ctx.fillStyle = act ? (flash ? '#eaffc8' : '#9fff6a') : '#7adf5a';
     ctx.beginPath();
     ctx.moveTo(p.x, p.y - 47); ctx.lineTo(p.x - 2.4, p.y - 41); ctx.lineTo(p.x, p.y - 42); ctx.lineTo(p.x + 2.4, p.y - 41);
     ctx.closePath(); ctx.fill();
+    /* 储存秒数 */
+    ctx.font = 'bold 9px ui-monospace, Menlo, Consolas, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = act ? '#eaffc8' : '#93c982';
+    ctx.fillText(Math.ceil(p.homT) + 's', p.x, p.y - 52);
   }
   /* 临时护盾：泡泡 + 旋转六边形闪光，快结束时闪烁 */
   if (p.shieldT > 0 && (p.shieldT > 1.5 || Math.floor(now / 110) % 2 === 0)) {
@@ -2795,6 +3033,16 @@ var ITEM_STYLE = {
       ctx.lineTo(x2, y2);
     }
     ctx.closePath(); ctx.fill();
+  } },
+  G: { glow: '255,210,90', edge: '#ffd24a', icon: function () {
+    /* 连锁奖牌：金色小圆牌 + 星芯（下落更慢、微光，见 dropKind） */
+    ctx.fillStyle = '#ffd24a';
+    ctx.beginPath(); ctx.arc(0, 0, 5.5, 0, TAU); ctx.fill();
+    ctx.strokeStyle = '#fff2c0';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.fillStyle = '#a8741a';
+    ctx.beginPath(); ctx.arc(0, 0, 2, 0, TAU); ctx.fill();
   } }
 };
 function drawItem(it) {
@@ -3158,7 +3406,7 @@ function drawWeaponHud(p, alignRight) {
   ctx.fillStyle = wCol;
   ctx.font = 'bold 13px "PingFang SC", system-ui, sans-serif';
   ctx.textAlign = alignRight ? 'right' : 'left';
-  var label = (numPlayers === 2 ? 'P' + (p.id + 1) + ' ' : '') + WEAPON_NAMES[p.weapon];
+  var label = (numPlayers === 2 ? 'P' + (p.id + 1) + ' ' : '') + wName(p.weapon);
   ctx.fillText(label, x0 + dir * 22, 42);
   /* 等级圆点 */
   for (var i = 0; i < p.lvl; i++) {
@@ -3185,12 +3433,12 @@ function drawHud() {
     ctx.fillText('◆ FUSION ◆', W / 2, 22);
     ctx.font = 'bold 10px "PingFang SC", system-ui, sans-serif';
     ctx.fillStyle = '#9fb2d8';
-    var fname = bothWeapon('red') ? '超级火神炮' : bothWeapon('blue') ? '电弧链' : bothWeapon('spr') ? '全向弹幕' : '协力强化 +50%';
+    var fname = bothWeapon('red') ? T('fu_super') : bothWeapon('blue') ? T('fu_arc') : bothWeapon('spr') ? T('fu_ring') : T('fu_mix');
     ctx.fillText(fname, W / 2, 38);
   } else {
     ctx.fillStyle = '#8fa2c8';
     ctx.font = 'bold 11px "PingFang SC", system-ui, sans-serif';
-    ctx.fillText('ST' + stage + ' ' + stageConf().name + ' · ' + D().name + (endlessLoop > 0 ? ' · 无尽' + endlessLoop : ''), W / 2, 22);
+    ctx.fillText('ST' + stage + ' ' + stageName(stageConf()) + ' · ' + diffName() + (endlessLoop > 0 ? ' · ' + Tf('hud_endless', { n: endlessLoop }) : ''), W / 2, 22);
   }
   if (players.length) drawWeaponHud(players[0], false);
   if (numPlayers === 2 && players[1]) drawWeaponHud(players[1], true);
@@ -3214,6 +3462,7 @@ function drawHud() {
     for (i = 0; i < p1.lives; i++) drawLifeIcon(20 + i * 22, H - 16, 0);
     for (i = 0; i < p1.bombs; i++) drawBombIcon(20 + i * 20, H - 38);
     for (i = 0; i < p1.frags; i++) drawFragIcon(20 + i * 16, H - 56);
+    drawHomStock(p1, 20, H - 72, false);
   }
   /* P2 or shared-right side */
   if (numPlayers === 2 && players[1]) {
@@ -3221,12 +3470,15 @@ function drawHud() {
     for (i = 0; i < p2.lives; i++) drawLifeIcon(W - 20 - i * 22, H - 16, 1);
     for (i = 0; i < p2.bombs; i++) drawBombIcon(W - 20 - i * 20, H - 38);
     for (i = 0; i < p2.frags; i++) drawFragIcon(W - 20 - i * 16, H - 56);
+    drawHomStock(p2, W - 20, H - 72, true);
   }
-  /* 底部中央：剩余续命次数 + 当前连击 */
+  /* 底部中央：剩余续命次数 + 擦弹/奖牌连锁 + 当前连击 */
   ctx.textAlign = 'center';
   ctx.font = 'bold 10px "PingFang SC", system-ui, sans-serif';
   ctx.fillStyle = '#7f92b8';
-  ctx.fillText('续命 ×' + continuesLeft, W / 2, H - 8);
+  ctx.fillText(Tf('hud_cont', { n: continuesLeft }), W / 2, H - 8);
+  ctx.fillStyle = '#6a8ab8';
+  ctx.fillText(T('hud_graze') + ' ' + grazeCount + ' · ' + T('hud_medal') + ' ×' + medalVal, W / 2, H - 44);
   if (comboCount >= 3 && comboT > 0) {
     ctx.fillStyle = '#6af0ff';
     ctx.font = 'bold 13px ui-monospace, Menlo, Consolas, monospace';
@@ -3288,6 +3540,29 @@ function drawFragIcon(x, y) {
   ctx.lineWidth = 1;
   ctx.stroke();
 }
+/* 追踪导弹储能 HUD：常驻显示导弹图标 + 储存秒数（0 时暗显）；
+   激活中变亮并闪动。right=true 时右对齐（2P 侧） */
+function drawHomStock(p, x, y, right) {
+  var act = p.homActive;
+  var flash = act && Math.floor(performance.now() / 140) % 2 === 0;
+  var iconC = p.homT > 0 ? (act ? (flash ? '#eaffc8' : '#9fff6a') : '#7adf5a') : 'rgba(122,223,90,0.3)';
+  ctx.fillStyle = iconC;
+  ctx.beginPath();
+  ctx.moveTo(x, y - 7); ctx.lineTo(x - 3, y + 3); ctx.lineTo(x, y + 1); ctx.lineTo(x + 3, y + 3);
+  ctx.closePath(); ctx.fill();
+  /* 储能小条（上限 30s） */
+  var bw = 30, bx = right ? x - 8 - bw : x + 8;
+  ctx.fillStyle = 'rgba(122,223,90,0.2)';
+  ctx.fillRect(bx, y - 3, bw, 5);
+  if (p.homT > 0) {
+    ctx.fillStyle = act ? (flash ? '#eaffc8' : '#7adf5a') : '#5fae4e';
+    ctx.fillRect(bx, y - 3, bw * clamp(p.homT / 30, 0, 1), 5);
+  }
+  ctx.font = 'bold 9px ui-monospace, Menlo, Consolas, monospace';
+  ctx.textAlign = right ? 'right' : 'left';
+  ctx.fillStyle = p.homT > 0 ? (act ? '#eaffc8' : '#93c982') : 'rgba(147,201,130,0.35)';
+  ctx.fillText(Math.ceil(p.homT) + 's', right ? bx - 4 : bx + bw + 4, y + 3);
+}
 function drawVeil(title, sub) {
   ctx.fillStyle = 'rgba(2,4,12,0.62)';
   ctx.fillRect(0, 0, W, H);
@@ -3306,8 +3581,8 @@ function drawPause() {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#eaf2ff';
   ctx.font = 'bold 30px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText('已暂停', W / 2, H * 0.5 - 40);
-  var opts = ['继续战斗', '返回标题菜单'];
+  ctx.fillText(T('pause_title'), W / 2, H * 0.5 - 40);
+  var opts = [T('pause_resume'), T('pause_back')];
   for (var i = 0; i < opts.length; i++) {
     var y = H * 0.5 + 10 + i * 46;
     var sel = i === pauseIdx;
@@ -3321,7 +3596,7 @@ function drawPause() {
   }
   ctx.fillStyle = '#7f92b8';
   ctx.font = '12px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText('↑↓ 选择 · Enter 确认 · P / Esc 继续', W / 2, H * 0.5 + 10 + 2 * 46 + 8);
+  ctx.fillText(T('pause_hint'), W / 2, H * 0.5 + 10 + 2 * 46 + 8);
 }
 function drawTitle() {
   ctx.fillStyle = 'rgba(2,4,12,0.45)';
@@ -3331,43 +3606,43 @@ function drawTitle() {
   ctx.font = 'bold 15px ui-monospace, Menlo, Consolas, monospace';
   ctx.fillText('T H U N D E R   S T R I K E', W / 2, H * 0.16 - 16);
   ctx.fillStyle = '#eaf2ff';
-  ctx.font = 'bold 46px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText('雷霆战机', W / 2, H * 0.16 + 28);
+  ctx.font = lang === 'en' ? 'bold 40px "PingFang SC", system-ui, sans-serif' : 'bold 46px "PingFang SC", system-ui, sans-serif';
+  ctx.fillText(T('title_main'), W / 2, H * 0.16 + 28);
   ctx.font = '13px "PingFang SC", system-ui, sans-serif';
   ctx.fillStyle = '#9fb2d8';
-  ctx.fillText('雷电风格 · 纵版弹幕射击 · 全 4 大关卡', W / 2, H * 0.16 + 54);
-  var items = ['单人游戏', '双人合作', '关卡选择', '难度：' + D().name, '设置', '排行榜'];
+  ctx.fillText(T('title_sub'), W / 2, H * 0.16 + 54);
+  var items = [T('menu_1p'), T('menu_2p'), T('menu_stage'), Tf('menu_diff', { d: diffName() }), T('menu_lang'), T('menu_settings'), T('menu_scores')];
   for (var i = 0; i < items.length; i++) {
-    var y = H * 0.38 + i * 40;
+    var y = H * 0.36 + i * 36;
     var sel = i === menuIdx;
     if (sel) {
       ctx.fillStyle = 'rgba(255,217,77,0.12)';
-      ctx.fillRect(W / 2 - 150, y - 21, 300, 34);
+      ctx.fillRect(W / 2 - 160, y - 20, 320, 32);
     }
-    ctx.font = sel ? 'bold 20px "PingFang SC", system-ui, sans-serif' : '17px "PingFang SC", system-ui, sans-serif';
+    ctx.font = sel ? 'bold 19px "PingFang SC", system-ui, sans-serif' : '16px "PingFang SC", system-ui, sans-serif';
     ctx.fillStyle = sel ? '#ffd94d' : '#9fb2d8';
     ctx.fillText((sel ? '▶ ' : '') + items[i], W / 2, y);
   }
   ctx.fillStyle = '#7f92b8';
   ctx.font = '12px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText('↑↓ 选择 · Enter 确认 · 1 / 2 快速开始', W / 2, H * 0.38 + 6 * 40 + 6);
+  ctx.fillText(T('title_hint'), W / 2, H * 0.36 + 7 * 36 + 10);
   /* 主菜单底部：历史最高分一行 */
   if (scores.length) {
     ctx.fillStyle = '#ffd94d';
     ctx.font = 'bold 14px ui-monospace, Menlo, Consolas, monospace';
-    ctx.fillText('BEST ' + String(scores[0].s).padStart(8, '0') + '  ' + scores[0].n, W / 2, H * 0.38 + 6 * 40 + 30);
+    ctx.fillText('BEST ' + String(scores[0].s).padStart(8, '0') + '  ' + scores[0].n, W / 2, H * 0.36 + 7 * 36 + 32);
   }
   ctx.font = '12px "PingFang SC", system-ui, sans-serif';
   ctx.fillStyle = '#ff8a6a';
-  ctx.fillText('V 火神炮', W / 2 - 172, H * 0.9);
+  ctx.fillText(T('legend_v'), W / 2 - 172, H * 0.93);
   ctx.fillStyle = '#c09aff';
-  ctx.fillText('L 电浆鞭', W / 2 - 58, H * 0.9);
+  ctx.fillText(T('legend_l'), W / 2 - 58, H * 0.93);
   ctx.fillStyle = '#ffd24a';
-  ctx.fillText('S 散射炮', W / 2 + 58, H * 0.9);
+  ctx.fillText(T('legend_s'), W / 2 + 58, H * 0.93);
   ctx.fillStyle = '#7adf5a';
-  ctx.fillText('H 限时导弹', W / 2 + 172, H * 0.9);
+  ctx.fillText(T('legend_h'), W / 2 + 172, H * 0.93);
   ctx.fillStyle = '#7f92b8';
-  ctx.fillText('4 大关卡 × 关底 Boss · 双人贴身触发合体技 · 通关后无尽挑战', W / 2, H * 0.9 + 26);
+  ctx.fillText(T('title_foot'), W / 2, H * 0.93 + 22);
 }
 /* 关卡选择 / 练习模式：列出已解锁关卡，←→ 选初始武器，Enter 从该关第 1 波开打 */
 function drawStageSelect() {
@@ -3376,10 +3651,10 @@ function drawStageSelect() {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#eaf2ff';
   ctx.font = 'bold 28px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText('关卡选择', W / 2, H * 0.2);
+  ctx.fillText(T('ss_title'), W / 2, H * 0.2);
   ctx.font = '12px ui-monospace, Menlo, Consolas, monospace';
   ctx.fillStyle = '#7f92b8';
-  ctx.fillText('STAGE SELECT / PRACTICE', W / 2, H * 0.2 + 24);
+  ctx.fillText(T('ss_sub'), W / 2, H * 0.2 + 24);
   for (var i = 1; i <= STAGE_COUNT; i++) {
     var conf = STAGES[i - 1];
     var y = H * 0.34 + (i - 1) * 52;
@@ -3391,17 +3666,17 @@ function drawStageSelect() {
     }
     ctx.font = sel && !locked ? 'bold 18px "PingFang SC", system-ui, sans-serif' : '16px "PingFang SC", system-ui, sans-serif';
     ctx.fillStyle = locked ? '#4a5468' : (sel ? '#ffd94d' : '#9fb2d8');
-    ctx.fillText((sel && !locked ? '▶ ' : '') + 'STAGE ' + i + '  ' + conf.name, W / 2, y);
+    ctx.fillText((sel && !locked ? '▶ ' : '') + 'STAGE ' + i + '  ' + stageName(conf), W / 2, y);
     ctx.font = '11px ui-monospace, Menlo, Consolas, monospace';
     ctx.fillStyle = locked ? '#3a4150' : '#7f92b8';
-    ctx.fillText(locked ? '— 未解锁（通关上一关解锁）—' : conf.en + ' · ' + conf.tag, W / 2, y + 18);
+    ctx.fillText(locked ? T('ss_locked') : (lang === 'en' ? conf.tagEn : conf.en + ' · ' + conf.tag), W / 2, y + 18);
   }
   ctx.font = '14px "PingFang SC", system-ui, sans-serif';
   ctx.fillStyle = '#cfe0ff';
-  ctx.fillText('初始武器：◀ ' + WEAPON_NAMES[startWeapon] + ' ▶', W / 2, H * 0.34 + 4 * 52 + 6);
+  ctx.fillText(Tf('ss_weapon', { w: wName(startWeapon) }), W / 2, H * 0.34 + 4 * 52 + 6);
   ctx.fillStyle = '#7f92b8';
   ctx.font = '12px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText('↑↓ 选关 · ←→ 换武器 · Enter 开打（3 命 3 炸弹 LV1） · Esc 返回', W / 2, H * 0.34 + 4 * 52 + 30);
+  ctx.fillText(T('ss_hint'), W / 2, H * 0.34 + 4 * 52 + 30);
 }
 /* 设置界面（仅主菜单可进入）：画面尺寸四档 / 音乐音量 / 音效音量 */
 function drawSettings() {
@@ -3410,7 +3685,7 @@ function drawSettings() {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#eaf2ff';
   ctx.font = 'bold 28px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText('设置', W / 2, H * 0.22);
+  ctx.fillText(T('set_title'), W / 2, H * 0.22);
   var pr = DISP_PRESETS[dispIdx];
   function bar(v) {
     var n = Math.round(v / 10), out = '';
@@ -3418,10 +3693,10 @@ function drawSettings() {
     return out;
   }
   var rows = [
-    '画面尺寸　◀ ' + pr.w + '×' + pr.h + ' ▶',
-    '音乐音量　◀ ' + bar(musVol) + ' ' + musVol + '% ▶',
-    '音效音量　◀ ' + bar(sfxVol) + ' ' + sfxVol + '% ▶',
-    '返回标题菜单'
+    T('set_disp') + '　◀ ' + pr.w + '×' + pr.h + ' ▶',
+    T('set_mus') + '　◀ ' + bar(musVol) + ' ' + musVol + '% ▶',
+    T('set_sfx') + '　◀ ' + bar(sfxVol) + ' ' + sfxVol + '% ▶',
+    T('set_back')
   ];
   for (var i = 0; i < rows.length; i++) {
     var y = H * 0.36 + i * 46;
@@ -3436,7 +3711,7 @@ function drawSettings() {
   }
   ctx.fillStyle = '#7f92b8';
   ctx.font = '12px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText('↑↓ 选择 · ←→ 调整 · Esc 返回（游戏内暂停菜单不提供改尺寸）', W / 2, H * 0.36 + 4 * 46 + 8);
+  ctx.fillText(T('set_hint'), W / 2, H * 0.36 + 4 * 46 + 8);
 }
 /* 最高分榜：本地 Top 10（initials 后缀标注起始关，如 ABC·ST3） */
 function drawScores() {
@@ -3448,7 +3723,7 @@ function drawScores() {
   ctx.fillText('HALL OF FAME', W / 2, H * 0.14);
   ctx.fillStyle = '#eaf2ff';
   ctx.font = 'bold 26px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText('最高分榜 TOP 10', W / 2, H * 0.14 + 32);
+  ctx.fillText(T('sc_title'), W / 2, H * 0.14 + 32);
   ctx.font = '13px ui-monospace, Menlo, Consolas, monospace';
   for (var i = 0; i < 10; i++) {
     var y = H * 0.26 + i * 34;
@@ -3464,7 +3739,7 @@ function drawScores() {
   }
   ctx.fillStyle = '#7f92b8';
   ctx.font = '12px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText('Esc / Enter 返回', W / 2, H * 0.26 + 10 * 34 + 12);
+  ctx.fillText(T('sc_hint'), W / 2, H * 0.26 + 10 * 34 + 12);
 }
 /* 街机留名：3 字母 initials，↑↓/WS 循环 A-Z，←→/AD 移动光标，Enter 确认 */
 function drawNameEntry() {
@@ -3476,7 +3751,7 @@ function drawNameEntry() {
   ctx.fillText('NEW RECORD!', W / 2, H * 0.24);
   ctx.fillStyle = '#eaf2ff';
   ctx.font = 'bold 30px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText('上榜留名', W / 2, H * 0.24 + 40);
+  ctx.fillText(T('ne_title'), W / 2, H * 0.24 + 40);
   ctx.font = 'bold 18px ui-monospace, Menlo, Consolas, monospace';
   ctx.fillText('SCORE ' + String(score).padStart(8, '0'), W / 2, H * 0.24 + 74);
   var blink = Math.floor(performance.now() / 400) % 2 === 0;
@@ -3491,7 +3766,7 @@ function drawNameEntry() {
   }
   ctx.fillStyle = '#7f92b8';
   ctx.font = '12px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText('↑↓ / W S 换字母 · ←→ / A D 移动光标 · Enter 确认', W / 2, H * 0.52 + 52);
+  ctx.fillText(T('ne_hint'), W / 2, H * 0.52 + 52);
 }
 /* 关间过场：黑场淡入「STAGE N — 中文名 — 英文名」+ 主题词 */
 function drawIntermission() {
@@ -3505,14 +3780,14 @@ function drawIntermission() {
   ctx.font = 'bold 17px ui-monospace, Menlo, Consolas, monospace';
   ctx.fillText('S T A G E   ' + intermNext, W / 2, H * 0.4);
   ctx.fillStyle = '#eaf2ff';
-  ctx.font = 'bold 40px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText(conf.name, W / 2, H * 0.4 + 52);
+  ctx.font = lang === 'en' ? 'bold 30px "PingFang SC", system-ui, sans-serif' : 'bold 40px "PingFang SC", system-ui, sans-serif';
+  ctx.fillText(stageName(conf), W / 2, H * 0.4 + 52);
   ctx.fillStyle = '#9fb2d8';
   ctx.font = 'bold 14px ui-monospace, Menlo, Consolas, monospace';
-  ctx.fillText('— ' + conf.en + ' —', W / 2, H * 0.4 + 82);
+  ctx.fillText('— ' + (lang === 'en' ? conf.name : conf.en) + ' —', W / 2, H * 0.4 + 82);
   ctx.fillStyle = '#7f92b8';
   ctx.font = '13px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText(conf.tag, W / 2, H * 0.4 + 116);
+  ctx.fillText(stageTag(conf), W / 2, H * 0.4 + 116);
   ctx.globalAlpha = 1;
 }
 /* ---------------- 第二波：最高分榜写入 ---------------- */
@@ -3542,26 +3817,30 @@ function drawGameover() {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ff6a5a';
   ctx.font = 'bold 36px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText('游戏结束', W / 2, H * 0.4);
+  ctx.fillText(T('go_title'), W / 2, H * 0.4);
   ctx.fillStyle = '#eaf2ff';
   ctx.font = 'bold 18px ui-monospace, Menlo, Consolas, monospace';
   ctx.fillText('SCORE ' + score, W / 2, H * 0.4 + 42);
   ctx.fillStyle = score >= hi && score > 0 ? '#ffd94d' : '#9fb2d8';
   ctx.font = '14px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText(score >= hi && score > 0 ? '新纪录！' : '最高分 ' + hi, W / 2, H * 0.4 + 70);
+  ctx.fillText(score >= hi && score > 0 ? T('go_newrec') : Tf('go_hi', { n: hi }), W / 2, H * 0.4 + 70);
+  /* 本局统计：擦弹总数 + 最高牌值 */
+  ctx.fillStyle = '#7f92b8';
+  ctx.font = '13px "PingFang SC", system-ui, sans-serif';
+  ctx.fillText(Tf('stats_gm', { g: grazeCount, m: medalBest }), W / 2, H * 0.4 + 94);
   if (gameoverT > 0.8) {
     var blink = Math.floor(performance.now() / 480) % 2 === 0;
     if (continuesLeft > 0) {
       ctx.fillStyle = blink ? '#6af0ff' : '#3a8a9a';
       ctx.font = 'bold 16px "PingFang SC", system-ui, sans-serif';
-      ctx.fillText('按 C 续命（剩余 ' + continuesLeft + ' 次）', W / 2, H * 0.4 + 100);
+      ctx.fillText(Tf('go_cont', { n: continuesLeft }), W / 2, H * 0.4 + 118);
       ctx.fillStyle = blink ? '#ffd94d' : '#8a7a3a';
       ctx.font = 'bold 14px "PingFang SC", system-ui, sans-serif';
-      ctx.fillText('按 Enter 重新开始', W / 2, H * 0.4 + 130);
+      ctx.fillText(T('go_restart'), W / 2, H * 0.4 + 148);
     } else if (blink) {
       ctx.fillStyle = '#ffd94d';
       ctx.font = 'bold 15px "PingFang SC", system-ui, sans-serif';
-      ctx.fillText('按 Enter 或点击重新开始', W / 2, H * 0.4 + 110);
+      ctx.fillText(T('go_restart2'), W / 2, H * 0.4 + 128);
     }
   }
 }
@@ -3578,22 +3857,26 @@ function drawVictory() {
   ctx.fillText('M I S S I O N   C O M P L E T E', W / 2, H * 0.26);
   ctx.fillStyle = '#ffd94d';
   ctx.font = 'bold 42px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText('通关达成！', W / 2, H * 0.26 + 48);
+  ctx.fillText(T('vic_title'), W / 2, H * 0.26 + 48);
   ctx.fillStyle = '#eaf2ff';
   ctx.font = 'bold 19px ui-monospace, Menlo, Consolas, monospace';
   ctx.fillText('SCORE ' + score, W / 2, H * 0.26 + 96);
   ctx.font = '15px ui-monospace, Menlo, Consolas, monospace';
   ctx.fillStyle = '#9fb2d8';
-  ctx.fillText('击坠 ' + kills + ' ・ 用时 ' + fmtTime(gameT) + ' ・ ' + D().name + (numPlayers === 2 ? ' ・ 双人' : ' ・ 单人'), W / 2, H * 0.26 + 124);
+  ctx.fillText(Tf('vic_stats', { k: kills, t: fmtTime(gameT), d: diffName(), p: T(numPlayers === 2 ? 'p_2p' : 'p_1p') }), W / 2, H * 0.26 + 124);
+  /* 本局统计：擦弹总数 + 最高牌值 */
+  ctx.font = '13px "PingFang SC", system-ui, sans-serif';
+  ctx.fillStyle = '#7f92b8';
+  ctx.fillText(Tf('stats_gm', { g: grazeCount, m: medalBest }), W / 2, H * 0.26 + 148);
   ctx.fillStyle = score >= hi && score > 0 ? '#ffd94d' : '#9fb2d8';
   ctx.font = '14px "PingFang SC", system-ui, sans-serif';
-  ctx.fillText(score >= hi && score > 0 ? '新纪录诞生！' : '最高分 ' + hi, W / 2, H * 0.26 + 152);
+  ctx.fillText(score >= hi && score > 0 ? T('vic_newrec') : Tf('go_hi', { n: hi }), W / 2, H * 0.26 + 174);
   if (victoryT > 1.2) {
     var blink = Math.floor(performance.now() / 480) % 2 === 0;
     if (blink) {
       ctx.fillStyle = '#ffd94d';
       ctx.font = 'bold 15px "PingFang SC", system-ui, sans-serif';
-      ctx.fillText('Enter 返回标题 ・ 按 C 开启无尽挑战', W / 2, H * 0.26 + 196);
+      ctx.fillText(T('vic_hint'), W / 2, H * 0.26 + 214);
     }
   }
 }
@@ -3607,12 +3890,12 @@ function syncDom() {
     oLives.textContent = numPlayers === 2 && players[1] ? players[0].lives + ' / ' + players[1].lives : String(players[0].lives);
     oBombs.textContent = numPlayers === 2 && players[1] ? players[0].bombs + ' / ' + players[1].bombs : String(players[0].bombs);
     oWeapon.textContent = numPlayers === 2 && players[1]
-      ? WEAPON_NAMES[players[0].weapon] + ' Lv' + players[0].lvl + ' / ' + WEAPON_NAMES[players[1].weapon] + ' Lv' + players[1].lvl
-      : WEAPON_NAMES[players[0].weapon] + ' Lv' + players[0].lvl;
+      ? wName(players[0].weapon) + ' Lv' + players[0].lvl + ' / ' + wName(players[1].weapon) + ' Lv' + players[1].lvl
+      : wName(players[0].weapon) + ' Lv' + players[0].lvl;
   } else {
     oLives.textContent = '3';
     oBombs.textContent = '3';
-    oWeapon.textContent = '火神炮 Lv1';
+    oWeapon.textContent = wName('red') + ' Lv1';
   }
 }
 
@@ -3632,11 +3915,13 @@ var godMode = false;
   if (m) { dbgStage = parseInt(m[1], 10); unlocked = Math.max(unlocked, dbgStage); }
   m = q.match(/[?&]wave=([1-8])/);
   if (m) dbgWave = parseInt(m[1], 10);
+  m = q.match(/[?&]weapon=(red|blue|spr)/);
+  if (m) startWeapon = m[1]; /* 录制/调试用：指定初始武器（仅本次会话） */
   if (/[?&]god=1/.test(q)) godMode = true;
   if (/[?&]mute=1/.test(q)) {
     soundOn = false; musOn = false;
-    btnSound.textContent = '音效：关';
-    btnMusic.textContent = '音乐：关';
+    btnSound.textContent = T('sfx_off');
+    btnMusic.textContent = T('mus_off');
     btnSound.setAttribute('aria-pressed', 'false');
     btnMusic.setAttribute('aria-pressed', 'false');
   }
@@ -3660,6 +3945,7 @@ try {
 
 /* ---------------- main loop ---------------- */
 var last = performance.now();
+applyLangDom(); /* 启动时按 ts_lang 持久化语言同步 DOM 文本（默认中文） */
 function frame(now) {
   requestAnimationFrame(frame);
   var raw = (now - last) / 1000;
