@@ -17,6 +17,13 @@
   --shell-border: #26314d;
   --shell-surface: #151d33;
   --shell-accent: #6ac0ff;
+  --deck-block-size: 78px;
+  --deck-gap: 8px;
+  --deck-border: #314261;
+  --deck-surface: #08101f;
+  --deck-blue: #72baff;
+  --deck-green: #8fe56f;
+  --deck-orange: #ffb45f;
 }
 .kimi-host-safe-context { container-type: inline-size; }
 [data-kimi-root] { box-sizing: border-box; inline-size: 100%; min-inline-size: 0; max-inline-size: 100%; overflow: visible; }
@@ -36,6 +43,8 @@ body {
   font-family: var(--kimi-font-sans, -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif);
   color: var(--kimi-color-text-primary, var(--shell-text));
   letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 main[data-kimi-root] {
   position: relative;
@@ -84,75 +93,191 @@ header.kimi-host-safe-header,
 }
 .stage canvas:focus-visible { outline: 2px solid var(--kimi-color-accent, var(--shell-accent)); outline-offset: -2px; }
 .touch-actions {
-  position: absolute;
+  position: relative;
   z-index: 4;
-  inset-inline-end: max(10px, env(safe-area-inset-right, 0px));
-  inset-block-end: max(12px, env(safe-area-inset-bottom, 0px));
   display: none;
-  flex-direction: column;
-  align-items: center;
-  gap: 9px;
-  pointer-events: none;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(78px, 0.78fr);
+  gap: 5px;
+  inline-size: min(
+    100%,
+    var(--game-max-inline),
+    calc(
+      (
+        100dvh
+        - env(safe-area-inset-top, 0px)
+        - env(safe-area-inset-bottom, 0px)
+        - var(--deck-block-size)
+        - var(--deck-gap)
+      ) * 0.75
+    )
+  );
+  block-size: var(--deck-block-size);
+  padding: 8px 6px 5px;
+  border: 1px solid var(--deck-border);
+  background:
+    linear-gradient(90deg, rgba(87, 133, 197, 0.08) 1px, transparent 1px) 0 0 / 18px 100%,
+    linear-gradient(rgba(105, 148, 210, 0.04) 1px, transparent 1px) 0 0 / 100% 9px,
+    var(--deck-surface);
+  box-shadow: inset 0 1px 0 rgba(152, 190, 242, 0.08);
+  clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%, 0 8px);
+  font-variant-numeric: tabular-nums;
 }
 .touch-actions[hidden] { display: none !important; }
+.touch-actions::before {
+  content: "TACTICAL CONTROL";
+  position: absolute;
+  inset-block-start: 2px;
+  inset-inline-end: 11px;
+  color: rgba(148, 174, 215, 0.4);
+  font: 600 6px/1 ui-monospace, Menlo, Consolas, monospace;
+  letter-spacing: 0.12em;
+  pointer-events: none;
+}
 .touch-actions button {
+  --control-accent: var(--deck-blue);
+  --control-accent-rgb: 114, 186, 255;
+  --control-border: #4c79a8;
+  --control-muted: #8eb9df;
+  position: relative;
   display: grid;
-  place-items: center;
-  inline-size: 58px;
-  block-size: 58px;
-  padding: 4px;
-  border: 1px solid rgba(180, 205, 255, 0.35);
-  border-radius: 50%;
-  background: rgba(11, 18, 36, 0.78);
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  min-inline-size: 0;
+  min-block-size: 44px;
+  padding: 9px 7px 7px;
+  border: 1px solid var(--control-border);
+  border-radius: 0;
+  background:
+    linear-gradient(135deg, rgba(var(--control-accent-rgb), 0.13), transparent 52%),
+    #0b1425;
   color: #eaf2ff;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 8px 24px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  font: 700 10px/1 var(--kimi-font-sans, -apple-system, "PingFang SC", sans-serif);
-  letter-spacing: 0.02em;
-  pointer-events: auto;
+  box-shadow:
+    inset 3px 0 0 rgba(var(--control-accent-rgb), 0.76),
+    inset 0 -1px 0 rgba(170, 200, 243, 0.08);
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  font-family: var(--kimi-font-sans, -apple-system, "PingFang SC", sans-serif);
+  text-align: start;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  transition: transform 90ms ease-out, filter 90ms ease-out, opacity 120ms ease-out;
+}
+.touch-actions button::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 5px;
+  inset-inline-end: 5px;
+  inline-size: 12px;
+  block-size: 2px;
+  background: var(--control-accent);
+  opacity: 0.72;
+}
+.touch-actions button > span {
+  display: grid;
+  min-inline-size: 0;
+  gap: 3px;
 }
 .touch-actions button .key {
-  display: block;
-  margin-block-end: 2px;
-  color: #9fc7ff;
-  font: 800 14px/1 ui-monospace, Menlo, Consolas, monospace;
+  color: var(--control-accent);
+  font: 800 18px/1 ui-monospace, Menlo, Consolas, monospace;
+  text-align: center;
+  text-shadow: 0 0 10px rgba(var(--control-accent-rgb), 0.5);
+}
+.touch-actions button strong {
+  overflow: hidden;
+  color: #edf4ff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.touch-actions button small {
+  overflow: hidden;
+  color: var(--control-muted);
+  font: 700 8px/1 ui-monospace, Menlo, Consolas, monospace;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.touch-actions button.action-homing {
+  --control-accent: var(--deck-green);
+  --control-accent-rgb: 143, 229, 111;
+  --control-border: #527f4b;
+  --control-muted: #9acb87;
 }
 .touch-actions button.action-bomb {
-  inline-size: 68px;
-  block-size: 68px;
-  border-color: rgba(255, 178, 92, 0.58);
-  background: rgba(74, 34, 17, 0.82);
+  --control-accent: var(--deck-orange);
+  --control-accent-rgb: 255, 180, 95;
+  --control-border: #966b3e;
+  --control-muted: #dbad78;
 }
-.touch-actions button.action-bomb .key { color: #ffd18d; }
-.touch-actions button.action-homing {
-  border-color: rgba(122, 223, 90, 0.5);
+.touch-actions button.is-active {
+  filter: brightness(1.16);
+  box-shadow:
+    inset 3px 0 0 var(--control-accent),
+    inset 0 0 18px rgba(var(--control-accent-rgb), 0.14);
 }
-.touch-actions button.action-homing .key { color: #a9ef87; }
 .touch-actions button:active {
-  transform: scale(0.94);
+  transform: scale(0.96);
   filter: brightness(1.18);
 }
 .touch-actions button:focus-visible {
-  outline: 2px solid #ffffff;
+  outline: 2px solid var(--control-accent);
   outline-offset: 2px;
 }
 .touch-actions button:disabled {
-  opacity: 0.36;
-  filter: saturate(0.45);
+  opacity: 0.43;
+  filter: saturate(0.35);
 }
 @media (pointer: coarse), (max-width: 759px) {
-  html:not([data-runtime="mac"]) main[data-kimi-root] { place-items: start center; }
+  html:not([data-runtime="mac"]) main[data-kimi-root] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--deck-gap);
+  }
   html:not([data-runtime="mac"]) .stage {
-    inline-size: min(100%, calc(100dvh * 0.75));
+    inline-size: min(
+      100%,
+      calc(
+        (
+          100dvh
+          - env(safe-area-inset-top, 0px)
+          - env(safe-area-inset-bottom, 0px)
+          - var(--deck-block-size)
+          - var(--deck-gap)
+        ) * 0.75
+      )
+    );
     max-inline-size: 100%;
     box-shadow: none;
   }
-  html:not([data-runtime="mac"]) .touch-actions { display: flex; }
+  html:not([data-runtime="mac"]) .touch-actions { display: grid; }
   html:not([data-runtime="mac"]) .stage canvas { cursor: default; }
+}
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) {
+  html:not([data-runtime="mac"]) main[data-kimi-root] {
+    flex-direction: row;
+    gap: 10px;
+  }
+  html:not([data-runtime="mac"]) .stage {
+    inline-size: calc(
+      (
+        100dvh
+        - env(safe-area-inset-top, 0px)
+        - env(safe-area-inset-bottom, 0px)
+      ) * 0.75
+    );
+  }
+  html:not([data-runtime="mac"]) .touch-actions {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(3, minmax(44px, 1fr));
+    inline-size: clamp(148px, 24vw, 196px);
+    block-size: min(100%, 230px);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .touch-actions button { transition: none; }
@@ -203,14 +328,17 @@ html[data-runtime="mac"] .touch-actions {
     <canvas id="game" width="480" height="640" tabindex="0" role="application" aria-label="雷霆战机游戏画面。1P 用 WASD 移动、空格放炸弹，2P 用方向键移动、回车放炸弹。"></canvas>
   </div>
   <div class="touch-actions" id="touchActions" aria-label="移动端游戏操作" hidden>
-    <button id="btnTouchPause" type="button" aria-label="暂停游戏">
-      <span><span class="key">II</span><span id="touchPauseLabel">暂停</span></span>
-    </button>
     <button id="btnTouchHoming" type="button" class="action-homing" aria-label="发射追踪导弹" disabled>
-      <span><span class="key">H</span><span id="touchHomingLabel">导弹</span></span>
+      <span class="key">H</span>
+      <span><strong id="touchHomingLabel">导弹</strong><small id="touchHomingState">空仓</small></span>
     </button>
     <button id="btnTouchBomb" type="button" class="action-bomb" aria-label="释放炸弹" disabled>
-      <span><span class="key">B</span><span id="touchBombLabel">炸弹</span></span>
+      <span class="key">B</span>
+      <span><strong id="touchBombLabel">炸弹</strong><small id="touchBombState">×0</small></span>
+    </button>
+    <button id="btnTouchPause" type="button" aria-label="暂停游戏">
+      <span class="key">II</span>
+      <span><strong id="touchPauseLabel">暂停</strong><small id="touchPauseState">运行中</small></span>
     </button>
   </div>
   <div class="controls" data-kimi-priority="p1">
@@ -243,6 +371,9 @@ var touchActions = document.getElementById('touchActions');
 var touchPauseLabel = document.getElementById('touchPauseLabel');
 var touchHomingLabel = document.getElementById('touchHomingLabel');
 var touchBombLabel = document.getElementById('touchBombLabel');
+var touchPauseState = document.getElementById('touchPauseState');
+var touchHomingState = document.getElementById('touchHomingState');
+var touchBombState = document.getElementById('touchBombState');
 var ttlMain = document.getElementById('ttlMain');
 var ttlSub = document.getElementById('ttlSub');
 var lbScore = document.getElementById('lbScore');
@@ -292,6 +423,11 @@ var STR = {
   touch_resume:{ zh: '继续', en: 'Resume' },
   touch_homing:{ zh: '导弹', en: 'Homing' },
   touch_bomb:  { zh: '炸弹', en: 'Bomb' },
+  touch_empty: { zh: '空仓', en: 'Empty' },
+  touch_stock: { zh: '储能 {n}s', en: 'Stock {n}s' },
+  touch_active:{ zh: '发射中 {n}s', en: 'Active {n}s' },
+  touch_running:{ zh: '运行中', en: 'Running' },
+  touch_paused:{ zh: '待机', en: 'Standby' },
   touch_start: { zh: '开始战斗', en: 'Start Stage' },
   touch_back:  { zh: '返回', en: 'Back' },
   touch_confirm:{ zh: '确认留名', en: 'Confirm Name' },
@@ -2255,8 +2391,22 @@ function setMode(m) {
 }
 function syncTouchControls() {
   var p = players && players.length ? players[0] : null;
-  if (btnTouchBomb) btnTouchBomb.disabled = mode !== 'playing' || !p || !p.alive || p.bombs <= 0;
-  if (btnTouchHoming) btnTouchHoming.disabled = mode !== 'playing' || !p || !p.alive || p.homT <= 0 || p.homActive;
+  var canPlay = mode === 'playing' && p && p.alive;
+  var homingSeconds = p ? Math.ceil(p.homT) : 0;
+  var homingText = !p || p.homT <= 0
+    ? T('touch_empty')
+    : Tf(p.homActive ? 'touch_active' : 'touch_stock', { n: homingSeconds });
+  var bombText = '×' + (p ? p.bombs : 0);
+  var pauseText = mode === 'paused' ? T('touch_paused') : T('touch_running');
+  if (touchHomingState && touchHomingState.textContent !== homingText) touchHomingState.textContent = homingText;
+  if (touchBombState && touchBombState.textContent !== bombText) touchBombState.textContent = bombText;
+  if (touchPauseState && touchPauseState.textContent !== pauseText) touchPauseState.textContent = pauseText;
+  if (btnTouchBomb) btnTouchBomb.disabled = !canPlay || p.bombs <= 0;
+  if (btnTouchHoming) {
+    btnTouchHoming.disabled = !canPlay || p.homT <= 0 || p.homActive;
+    btnTouchHoming.classList.toggle('is-active', !!(p && p.homActive));
+  }
+  if (btnTouchBomb) btnTouchBomb.classList.toggle('is-active', !!(canPlay && p.bombs > 0));
 }
 /* n: 玩家人数；fromStage/fromWave: 起始关与起始波（关卡选择 / 调试钩子），缺省第 1 关第 1 波 */
 function startGame(n, fromStage, fromWave) {
