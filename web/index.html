@@ -112,12 +112,11 @@ header.kimi-host-safe-header,
   font-variant-numeric: tabular-nums;
 }
 .touch-actions[hidden] { display: none !important; }
-.touch-joystick {
+.touch-move-zone {
   position: absolute;
   inset-inline-start: 0;
-  inset-block-end: 0;
-  inline-size: 54%;
-  block-size: 42%;
+  inset-block: 0;
+  inline-size: 68%;
   border: 0;
   padding: 0;
   background: transparent;
@@ -127,89 +126,43 @@ header.kimi-host-safe-header,
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
-.touch-joystick-visual {
+.touch-contact {
+  --touch-x: 50%;
+  --touch-y: 75%;
   position: absolute;
-  inset-inline-start: clamp(12px, 4cqi, 22px);
-  inset-block-end: clamp(16px, 5cqi, 28px);
-  inline-size: clamp(92px, 27cqi, 116px);
-  aspect-ratio: 1;
-  pointer-events: none;
-  transform: translate3d(0, 0, 0);
-  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), opacity 120ms ease-out;
-}
-.joystick-ring {
-  position: absolute;
-  inset: 0;
-  border: 1px solid rgba(114, 186, 255, 0.52);
-  background:
-    radial-gradient(circle, rgba(114, 186, 255, 0.08) 0 28%, transparent 29%),
-    linear-gradient(rgba(91, 131, 190, 0.07) 1px, transparent 1px) 0 0 / 100% 12px,
-    rgba(5, 12, 27, 0.46);
-  box-shadow:
-    inset 0 0 0 5px rgba(9, 20, 40, 0.2),
-    inset 0 0 24px rgba(76, 139, 211, 0.13),
-    0 6px 22px rgba(0, 0, 0, 0.14);
-  clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
-}
-.joystick-ring::before,
-.joystick-ring::after {
-  content: "";
-  position: absolute;
-  inset: 50% auto auto 50%;
-  background: rgba(128, 181, 239, 0.19);
-  transform: translate(-50%, -50%);
-}
-.joystick-ring::before {
-  inline-size: 66%;
-  block-size: 1px;
-}
-.joystick-ring::after {
-  inline-size: 1px;
-  block-size: 66%;
-}
-.joystick-knob {
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-start: 50%;
+  inset-block-start: 0;
+  inset-inline-start: 0;
   display: grid;
   place-items: center;
-  inline-size: clamp(42px, 12cqi, 50px);
+  inline-size: 34px;
   aspect-ratio: 1;
-  border: 1px solid rgba(150, 204, 255, 0.7);
-  background:
-    radial-gradient(circle at 42% 35%, rgba(202, 229, 255, 0.25), transparent 38%),
-    rgba(20, 45, 77, 0.78);
-  box-shadow:
-    inset 0 0 12px rgba(114, 186, 255, 0.18),
-    0 3px 14px rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(114, 186, 255, 0.36);
+  background: rgba(8, 19, 38, 0.22);
+  box-shadow: inset 0 0 12px rgba(114, 186, 255, 0.09);
   clip-path: polygon(26% 0, 74% 0, 100% 26%, 100% 74%, 74% 100%, 26% 100%, 0 74%, 0 26%);
-  transform: translate(-50%, -50%);
-  transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1), filter 120ms ease-out;
+  opacity: 0;
+  filter: blur(4px);
+  pointer-events: none;
+  transform:
+    translate3d(var(--touch-x), var(--touch-y), 0)
+    translate(-50%, -50%)
+    scale(0.25);
+  transition: transform 120ms cubic-bezier(0.2, 0, 0, 1), opacity 120ms ease-out, filter 120ms ease-out;
 }
-.joystick-knob::before {
+.touch-contact::before {
   content: "";
   inline-size: 7px;
   aspect-ratio: 1;
-  border: 1px solid rgba(191, 225, 255, 0.8);
+  border: 1px solid rgba(191, 225, 255, 0.72);
   transform: rotate(45deg);
 }
-.touch-joystick.is-engaged .joystick-knob {
-  filter: brightness(1.15);
-  transition: none;
-}
-.touch-joystick.is-engaged .touch-joystick-visual {
+.touch-move-zone.is-engaged .touch-contact {
   opacity: 1;
-  transition: none;
-}
-.touch-joystick-label {
-  position: absolute;
-  inset-inline: 0;
-  inset-block-end: -13px;
-  color: rgba(156, 191, 229, 0.56);
-  font: 700 7px/1 ui-monospace, Menlo, Consolas, monospace;
-  letter-spacing: 0.18em;
-  text-align: center;
-  pointer-events: none;
+  filter: blur(0);
+  transform:
+    translate3d(var(--touch-x), var(--touch-y), 0)
+    translate(-50%, -50%)
+    scale(1);
 }
 .touch-fire {
   position: absolute;
@@ -352,7 +305,7 @@ header.kimi-host-safe-header,
   letter-spacing: -0.12em;
   transform: translateX(-1px);
 }
-.touch-actions.is-paused .touch-joystick {
+.touch-actions.is-paused .touch-move-zone {
   opacity: 0.36;
   pointer-events: none;
 }
@@ -399,7 +352,7 @@ header.kimi-host-safe-header,
 }
 @media (prefers-reduced-motion: reduce) {
   .touch-actions button,
-  .joystick-knob { transition: none; }
+  .touch-contact { transition: none; }
 }
 html[data-daimon-size-tier] body {
   min-block-size: 0;
@@ -446,12 +399,8 @@ html[data-runtime="mac"] .touch-actions {
   <div class="stage" data-kimi-priority="p0">
     <canvas id="game" width="480" height="640" tabindex="0" role="application" aria-label="雷霆战机游戏画面。1P 用 WASD 移动、空格放炸弹，2P 用方向键移动、回车放炸弹。"></canvas>
     <div class="touch-actions" id="touchActions" aria-label="移动端游戏操作" hidden>
-      <div class="touch-joystick" id="touchJoystick" role="application" aria-label="虚拟移动摇杆">
-        <div class="touch-joystick-visual" id="touchJoystickVisual">
-          <div class="joystick-ring" aria-hidden="true"></div>
-          <div class="joystick-knob" id="touchJoystickKnob" aria-hidden="true"></div>
-          <span class="touch-joystick-label" aria-hidden="true">MOVE / 01</span>
-        </div>
+      <div class="touch-move-zone" id="touchMoveZone" role="application" aria-label="左侧滑动移动区域">
+        <span class="touch-contact" id="touchContact" aria-hidden="true"></span>
       </div>
       <div class="touch-fire">
         <button id="btnTouchHoming" type="button" class="action-homing" aria-label="发射追踪导弹" disabled>
@@ -478,7 +427,7 @@ html[data-runtime="mac"] .touch-actions {
     <button id="btnSound" type="button" aria-pressed="true">音效：开</button>
     <button id="btnMusic" type="button" aria-pressed="true">音乐：开</button>
   </div>
-  <p class="help" id="helpText" data-kimi-priority="p2">1P：WASD / 方向键移动 · 空格 / X 炸弹 · 左 Ctrl 发射追踪导弹　｜　2P：方向键移动 · 回车炸弹 · 右 Ctrl 发射追踪导弹　｜　P / Esc 暂停菜单 · Game Over 按 C 续命 · 双人贴身 0.6 秒触发 FUSION 合体 · 手机竖屏使用左侧摇杆移动、右侧按钮释放导弹与炸弹。捡 H 储存导弹（+10s，上限 30s），按 Ctrl 才发射。菜单可选单人 / 双人 / 关卡选择 / 四档难度 / 设置 / 排行榜，全 4 大关卡，击败每关关底 Boss 推进，通关后开启无尽挑战。</p>
+  <p class="help" id="helpText" data-kimi-priority="p2">1P：WASD / 方向键移动 · 空格 / X 炸弹 · 左 Ctrl 发射追踪导弹　｜　2P：方向键移动 · 回车炸弹 · 右 Ctrl 发射追踪导弹　｜　P / Esc 暂停菜单 · Game Over 按 C 续命 · 双人贴身 0.6 秒触发 FUSION 合体 · 手机竖屏在左侧区域任意位置滑动移动，右侧按钮释放导弹与炸弹。捡 H 储存导弹（+10s，上限 30s），按 Ctrl 才发射。菜单可选单人 / 双人 / 关卡选择 / 四档难度 / 设置 / 排行榜，全 4 大关卡，击败每关关底 Boss 推进，通关后开启无尽挑战。</p>
 <script>
 (function () {
 'use strict';
@@ -499,9 +448,8 @@ var btnTouchPause = document.getElementById('btnTouchPause');
 var btnTouchHoming = document.getElementById('btnTouchHoming');
 var btnTouchBomb = document.getElementById('btnTouchBomb');
 var touchActions = document.getElementById('touchActions');
-var touchJoystickEl = document.getElementById('touchJoystick');
-var touchJoystickVisualEl = document.getElementById('touchJoystickVisual');
-var touchJoystickKnobEl = document.getElementById('touchJoystickKnob');
+var touchMoveZoneEl = document.getElementById('touchMoveZone');
+var touchContactEl = document.getElementById('touchContact');
 var touchPauseLabel = document.getElementById('touchPauseLabel');
 var touchHomingLabel = document.getElementById('touchHomingLabel');
 var touchBombLabel = document.getElementById('touchBombLabel');
@@ -575,7 +523,7 @@ var STR = {
   touch_active:{ zh: '发射中 {n}s', en: 'Active {n}s' },
   touch_running:{ zh: '运行中', en: 'Running' },
   touch_paused:{ zh: '待机', en: 'Standby' },
-  touch_move_aria:{ zh: '虚拟移动摇杆', en: 'Virtual movement stick' },
+  touch_move_aria:{ zh: '左侧滑动移动区域', en: 'Left-side drag movement area' },
   portrait_guard:{ zh: '请将手机旋转至竖屏继续游玩', en: 'Rotate your phone to portrait to continue' },
   touch_start: { zh: '开始战斗', en: 'Start Stage' },
   touch_back:  { zh: '返回', en: 'Back' },
@@ -587,8 +535,8 @@ var STR = {
   mus_on:      { zh: '音乐：开', en: 'Music: On' },
   mus_off:     { zh: '音乐：关', en: 'Music: Off' },
   help: {
-    zh: '1P：WASD / 方向键移动 · 空格 / X 炸弹 · 左 Ctrl 发射追踪导弹　｜　2P：方向键移动 · 回车炸弹 · 右 Ctrl 发射追踪导弹　｜　P / Esc 暂停菜单 · Game Over 按 C 续命 · 双人贴身 0.6 秒触发 FUSION 合体 · 手机竖屏使用左侧摇杆移动、右侧按钮释放导弹与炸弹。捡 H 储存导弹（+10s，上限 30s），按 Ctrl 才发射。菜单可选单人 / 双人 / 关卡选择 / 四档难度 / 语言 / 设置 / 排行榜，全 4 大关卡，击败每关关底 Boss 推进，通关后开启无尽挑战。擦弹加分、连吃奖牌分值递增（受伤重置）。双人模式中搭档阵亡会掉落救援核心，拾取可将其复活；武器满级后再捡同色武器触发 8 秒超载。',
-    en: '1P: WASD / Arrows move · Space / X bomb · Left Ctrl launch homing | 2P: Arrows move · Enter bomb · Right Ctrl homing | P / Esc pause · C to continue on Game Over · 2P hug 0.6s triggers FUSION · on phones, play in portrait with the left stick and right-side Homing/Bomb buttons. Grab H to stock missiles (+10s, max 30s), press Ctrl to fire. Menu: 1P / 2P / stage select / 4 difficulties / language / settings / hi-scores — 4 stages, beat each boss to advance, endless mode after clear. Graze bullets for bonus, chain medals to raise their value (reset when hit). In co-op a fallen partner drops a rescue core — grab it to bring them back; at max weapon level, same-color pickups trigger 8s Overdrive.'
+    zh: '1P：WASD / 方向键移动 · 空格 / X 炸弹 · 左 Ctrl 发射追踪导弹　｜　2P：方向键移动 · 回车炸弹 · 右 Ctrl 发射追踪导弹　｜　P / Esc 暂停菜单 · Game Over 按 C 续命 · 双人贴身 0.6 秒触发 FUSION 合体 · 手机竖屏在左侧区域任意位置滑动移动，右侧按钮释放导弹与炸弹。捡 H 储存导弹（+10s，上限 30s），按 Ctrl 才发射。菜单可选单人 / 双人 / 关卡选择 / 四档难度 / 语言 / 设置 / 排行榜，全 4 大关卡，击败每关关底 Boss 推进，通关后开启无尽挑战。擦弹加分、连吃奖牌分值递增（受伤重置）。双人模式中搭档阵亡会掉落救援核心，拾取可将其复活；武器满级后再捡同色武器触发 8 秒超载。',
+    en: '1P: WASD / Arrows move · Space / X bomb · Left Ctrl launch homing | 2P: Arrows move · Enter bomb · Right Ctrl homing | P / Esc pause · C to continue on Game Over · 2P hug 0.6s triggers FUSION · on phones, drag anywhere in the left-side area to move and use the right-side Homing/Bomb buttons. Grab H to stock missiles (+10s, max 30s), press Ctrl to fire. Menu: 1P / 2P / stage select / 4 difficulties / language / settings / hi-scores — 4 stages, beat each boss to advance, endless mode after clear. Graze bullets for bonus, chain medals to raise their value (reset when hit). In co-op a fallen partner drops a rescue core — grab it to bring them back; at max weapon level, same-color pickups trigger 8s Overdrive.'
   },
   aria: {
     zh: '雷霆战机游戏画面。1P 用 WASD 移动、空格放炸弹，2P 用方向键移动、回车放炸弹。',
@@ -717,7 +665,7 @@ function applyLangDom() {
   if (touchPauseLabel) touchPauseLabel.textContent = mode === 'paused' ? T('touch_resume') : T('touch_pause');
   if (touchHomingLabel) touchHomingLabel.textContent = T('touch_homing');
   if (touchBombLabel) touchBombLabel.textContent = T('touch_bomb');
-  if (touchJoystickEl) touchJoystickEl.setAttribute('aria-label', T('touch_move_aria'));
+  if (touchMoveZoneEl) touchMoveZoneEl.setAttribute('aria-label', T('touch_move_aria'));
   if (portraitGuardText) portraitGuardText.textContent = T('portrait_guard');
   if (btnTouchPause) btnTouchPause.setAttribute('aria-label', mode === 'paused' ? T('touch_resume') : T('touch_pause'));
   if (btnTouchHoming) btnTouchHoming.setAttribute('aria-label', T('touch_homing'));
@@ -1534,7 +1482,20 @@ window.addEventListener('keyup', function (e) {
   keys[k.length === 1 ? k.toLowerCase() : k] = false;
 });
 var dragPointer = null, pointerLast = null;
-var touchMove = { x: 0, y: 0, active: false, pointer: null, originX: 0, originY: 0 };
+/*
+  手机移动使用“相对拖动目标”：
+  - 手指可从左侧大区域任意位置落下，不要求命中固定摇杆；
+  - 手指位移按灵敏度累积为飞机目标点，但目标最多领先飞机 72px；
+  - 飞机仍按固定最高速度追向目标，避免手指大幅滑动造成瞬移。
+*/
+var touchMove = {
+  active: false,
+  pointer: null,
+  lastClientX: 0,
+  lastClientY: 0,
+  targetX: 0,
+  targetY: 0
+};
 function toGame(clientX, clientY) {
   var r = cv.getBoundingClientRect();
   var scale = Math.min(r.width / W, r.height / H);
@@ -1560,7 +1521,7 @@ cv.addEventListener('pointerdown', function (e) {
     else if (pi === 1) backToTitle();
     return;
   }
-  /* 手机战斗操作只走画布内摇杆/武器键；Canvas 拖动仅保留给桌面鼠标。 */
+  /* 手机战斗操作只走左侧滑动区 / 右侧武器键；Canvas 拖动仅保留给桌面鼠标。 */
   if (mode !== 'playing' || dragPointer !== null || e.pointerType !== 'mouse' || isTouchUI()) return;
   dragPointer = e.pointerId;
   pointerLast = g;
@@ -1584,81 +1545,72 @@ function endPointer(e) {
 }
 cv.addEventListener('pointerup', endPointer);
 cv.addEventListener('pointercancel', endPointer);
-function placeTouchJoystick(clientX, clientY) {
-  if (!touchJoystickEl || !touchJoystickVisualEl) return;
-  var zone = touchJoystickEl.getBoundingClientRect();
-  var visual = touchJoystickVisualEl.getBoundingClientRect();
-  var defaultCenterX = touchJoystickVisualEl.offsetLeft + visual.width / 2;
-  var defaultCenterY = touchJoystickVisualEl.offsetTop + visual.height / 2;
-  var inset = visual.width / 2 + 4;
-  var targetX = clamp(clientX - zone.left, inset, zone.width - inset);
-  var targetY = clamp(clientY - zone.top, inset, zone.height - inset - 8);
-  var shiftX = targetX - defaultCenterX;
-  var shiftY = targetY - defaultCenterY;
-  touchJoystickVisualEl.style.transform =
-    'translate3d(' + shiftX.toFixed(1) + 'px,' + shiftY.toFixed(1) + 'px,0)';
+function placeTouchContact(clientX, clientY) {
+  if (!touchMoveZoneEl || !touchContactEl) return;
+  var r = touchMoveZoneEl.getBoundingClientRect();
+  touchContactEl.style.setProperty('--touch-x', clamp(clientX - r.left, 17, r.width - 17).toFixed(1) + 'px');
+  touchContactEl.style.setProperty('--touch-y', clamp(clientY - r.top, 17, r.height - 17).toFixed(1) + 'px');
 }
-function updateTouchJoystick(clientX, clientY) {
-  if (!touchJoystickVisualEl || !touchJoystickKnobEl) return;
-  var r = touchJoystickVisualEl.getBoundingClientRect();
-  var dx = clientX - touchMove.originX, dy = clientY - touchMove.originY;
-  var distance = Math.hypot(dx, dy);
-  var knobSize = touchJoystickKnobEl.getBoundingClientRect().width;
-  var travel = Math.max(18, (r.width - knobSize) / 2 - 3);
-  var visualScale = distance > travel ? travel / distance : 1;
-  var visualX = dx * visualScale, visualY = dy * visualScale;
-  var raw = Math.min(1, distance / travel);
-  var deadzone = 0.16;
-  var strength = raw <= deadzone ? 0 : Math.pow((raw - deadzone) / (1 - deadzone), 1.3);
-  var unitX = distance > 0 ? dx / distance : 0;
-  var unitY = distance > 0 ? dy / distance : 0;
-  touchMove.x = unitX * strength;
-  touchMove.y = unitY * strength;
-  touchJoystickKnobEl.style.transform =
-    'translate(-50%, -50%) translate3d(' + visualX.toFixed(1) + 'px,' + visualY.toFixed(1) + 'px,0)';
+function updateTouchDrag(clientX, clientY) {
+  if (!players.length || !players[0].alive) return;
+  var p = players[0];
+  var r = cv.getBoundingClientRect();
+  var scale = Math.min(r.width / W, r.height / H) || 1;
+  var sensitivity = 0.72;
+  var targetLead = 72;
+  var dx = (clientX - touchMove.lastClientX) / scale * sensitivity;
+  var dy = (clientY - touchMove.lastClientY) / scale * sensitivity;
+  var nextX = touchMove.targetX + dx;
+  var nextY = touchMove.targetY + dy;
+  touchMove.targetX = clamp(clamp(nextX, p.x - targetLead, p.x + targetLead), 16, W - 16);
+  touchMove.targetY = clamp(clamp(nextY, p.y - targetLead, p.y + targetLead), H * 0.2, H - 24);
+  touchMove.lastClientX = clientX;
+  touchMove.lastClientY = clientY;
+  placeTouchContact(clientX, clientY);
 }
-function resetTouchJoystick(pointerId) {
+function resetTouchMove(pointerId) {
   if (pointerId !== undefined && touchMove.pointer !== pointerId) return;
-  touchMove.x = 0;
-  touchMove.y = 0;
   touchMove.active = false;
   touchMove.pointer = null;
-  touchMove.originX = 0;
-  touchMove.originY = 0;
-  if (touchJoystickEl) touchJoystickEl.classList.remove('is-engaged');
-  if (touchJoystickVisualEl) touchJoystickVisualEl.style.transform = '';
-  if (touchJoystickKnobEl) touchJoystickKnobEl.style.transform = '';
+  touchMove.lastClientX = 0;
+  touchMove.lastClientY = 0;
+  if (players.length) {
+    touchMove.targetX = players[0].x;
+    touchMove.targetY = players[0].y;
+  }
+  if (touchMoveZoneEl) touchMoveZoneEl.classList.remove('is-engaged');
 }
-if (touchJoystickEl) {
-  touchJoystickEl.addEventListener('pointerdown', function (e) {
-    if (mode !== 'playing' || touchMove.pointer !== null) return;
+if (touchMoveZoneEl) {
+  touchMoveZoneEl.addEventListener('pointerdown', function (e) {
+    if (mode !== 'playing' || touchMove.pointer !== null || !players.length || !players[0].alive) return;
     e.preventDefault();
     ensureAudio();
     touchMove.pointer = e.pointerId;
     touchMove.active = true;
-    touchMove.originX = e.clientX;
-    touchMove.originY = e.clientY;
-    touchJoystickEl.classList.add('is-engaged');
-    try { touchJoystickEl.setPointerCapture(e.pointerId); } catch (err) {}
-    placeTouchJoystick(e.clientX, e.clientY);
-    updateTouchJoystick(e.clientX, e.clientY);
+    touchMove.lastClientX = e.clientX;
+    touchMove.lastClientY = e.clientY;
+    touchMove.targetX = players[0].x;
+    touchMove.targetY = players[0].y;
+    placeTouchContact(e.clientX, e.clientY);
+    touchMoveZoneEl.classList.add('is-engaged');
+    try { touchMoveZoneEl.setPointerCapture(e.pointerId); } catch (err) {}
   });
-  touchJoystickEl.addEventListener('pointermove', function (e) {
+  touchMoveZoneEl.addEventListener('pointermove', function (e) {
     if (touchMove.pointer !== e.pointerId) return;
     e.preventDefault();
-    updateTouchJoystick(e.clientX, e.clientY);
+    updateTouchDrag(e.clientX, e.clientY);
   });
-  touchJoystickEl.addEventListener('pointerup', function (e) {
+  touchMoveZoneEl.addEventListener('pointerup', function (e) {
     if (touchMove.pointer !== e.pointerId) return;
-    try { touchJoystickEl.releasePointerCapture(e.pointerId); } catch (err) {}
-    resetTouchJoystick(e.pointerId);
+    try { touchMoveZoneEl.releasePointerCapture(e.pointerId); } catch (err) {}
+    resetTouchMove(e.pointerId);
   });
-  touchJoystickEl.addEventListener('pointercancel', function (e) { resetTouchJoystick(e.pointerId); });
-  touchJoystickEl.addEventListener('lostpointercapture', function (e) { resetTouchJoystick(e.pointerId); });
+  touchMoveZoneEl.addEventListener('pointercancel', function (e) { resetTouchMove(e.pointerId); });
+  touchMoveZoneEl.addEventListener('lostpointercapture', function (e) { resetTouchMove(e.pointerId); });
 }
-window.addEventListener('blur', function () { resetTouchJoystick(); });
+window.addEventListener('blur', function () { resetTouchMove(); });
 window.addEventListener('orientationchange', function () {
-  resetTouchJoystick();
+  resetTouchMove();
   window.setTimeout(function () {
     try {
       if (mode === 'playing' && isTouchUI() && window.matchMedia('(orientation: landscape)').matches) togglePause();
@@ -1666,7 +1618,7 @@ window.addEventListener('orientationchange', function () {
   }, 80);
 }, { passive: true });
 document.addEventListener('visibilitychange', function () {
-  if (document.hidden) resetTouchJoystick();
+  if (document.hidden) resetTouchMove();
   if (document.hidden && mode === 'playing') togglePause();
 });
 
@@ -2618,7 +2570,7 @@ function setMode(m) {
   btnPause.textContent = m === 'paused' ? T('btn_resume') : T('btn_pause');
   if (touchActions) touchActions.hidden = !(m === 'playing' || m === 'paused');
   if (touchActions) touchActions.classList.toggle('is-paused', m === 'paused');
-  if (m !== 'playing') resetTouchJoystick();
+  if (m !== 'playing') resetTouchMove();
   if (touchPauseLabel) touchPauseLabel.textContent = m === 'paused' ? T('touch_resume') : T('touch_pause');
   if (btnTouchPause) {
     btnTouchPause.disabled = !(m === 'playing' || m === 'paused');
@@ -2746,8 +2698,12 @@ function playerMoveVector(p) {
   }
   var usingTouch = p.id === 0 && touchMove.active && isTouchUI();
   if (usingTouch) {
-    mx += touchMove.x;
-    my += touchMove.y;
+    /*
+      小位移保持精细修正，大位移进入满速；目标前置上限保证飞机不会瞬移，
+      也不会在手指停止后积压一大段“追赶距离”。
+    */
+    mx += clamp((touchMove.targetX - p.x) / 36, -1, 1);
+    my += clamp((touchMove.targetY - p.y) / 36, -1, 1);
   }
   return { x: mx, y: my, touch: usingTouch };
 }
@@ -2881,7 +2837,7 @@ function updatePlaying(dt) {
       var l = Math.hypot(mv.x, mv.y);
       var norm = l > 1 ? 1 / l : 1;
       var moveX = mv.x * norm, moveY = mv.y * norm;
-      /* 摇杆采用模拟力度且最高速度低于键盘：保留精细躲弹空间，避免拖拽式瞬移。 */
+      /* 相对拖动采用有限目标前置，且最高速度低于键盘：保留精细躲弹空间并避免瞬移。 */
       var moveSpeed = mv.touch ? 232 : 272;
       p.x = clamp(p.x + moveX * moveSpeed * dt, 16, W - 16);
       p.y = clamp(p.y + moveY * moveSpeed * dt, H * 0.2, H - 24);
@@ -4200,7 +4156,7 @@ function drawHud() {
     var bossNames = ['DESTROYER', 'CRAB MECH', 'MOTHERSHIP'];
     ctx.fillText((boss.name || bossNames[boss.kind]) + ' · P' + boss.phase, W / 2, 76);
   }
-  /* P1 状态：手机单人模式中炸弹/导弹已由右侧按钮实时显示，避免与左下摇杆重复叠加；
+  /* P1 状态：手机单人模式中炸弹/导弹已由右侧按钮实时显示，避免与触控区重复叠加；
      仅把生命压缩成一个机体图标 + 数字，放在左上武器 HUD 下方。 */
   if (players.length) {
     var p1 = players[0];
